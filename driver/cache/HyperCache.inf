@@ -1,0 +1,40 @@
+; HyperCache.sys - W-TinyLFU Cache MiniFilter
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"
+ClassGuid   = {b86dff51-a31e-4bac-b3bf-4c5f95f5db04}
+Provider    = "HTKIS"
+DriverVer   = 01/01/2026,0.1.0
+CatalogFile = HyperCache.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[DefaultInstall.NT]
+CopyFiles = HyperCache.CopyFiles
+
+[DefaultInstall.NT.Services]
+AddService = HyperCache,, HyperCache.Service
+
+[DefaultUninstall.NT]
+DelFiles = HyperCache.CopyFiles
+
+[DefaultUninstall.NT.Services]
+DelService = HyperCache,0x200
+
+[HyperCache.CopyFiles]
+HyperCache.sys
+
+[HyperCache.Service]
+DisplayName  = "HTKIS HyperDisk X Cache MiniFilter"
+ServiceType  = 2
+StartType    = 0
+ErrorControl = 1
+ServiceBinary = %12%\HyperCache.sys
+AddReg       = HyperCache.AddReg
+
+[HyperCache.AddReg]
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,"HyperCache Instance"
+HKR,"Instances\HyperCache Instance","Altitude",0x00000000,"380000"
+HKR,"Instances\HyperCache Instance","Flags",0x00010001,0x0

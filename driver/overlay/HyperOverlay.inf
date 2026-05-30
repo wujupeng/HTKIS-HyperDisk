@@ -1,0 +1,40 @@
+; HyperOverlay.sys - RamOverlay Write Redirect MiniFilter
+[Version]
+Signature   = "$Windows NT$"
+Class       = "ActivityMonitor"
+ClassGuid   = {b86dff51-a31e-4bac-b3bf-4c5f95f5db04}
+Provider    = "HTKIS"
+DriverVer   = 01/01/2026,0.1.0
+CatalogFile = HyperOverlay.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[DefaultInstall.NT]
+CopyFiles = HyperOverlay.CopyFiles
+
+[DefaultInstall.NT.Services]
+AddService = HyperOverlay,, HyperOverlay.Service
+
+[DefaultUninstall.NT]
+DelFiles = HyperOverlay.CopyFiles
+
+[DefaultUninstall.NT.Services]
+DelService = HyperOverlay,0x200
+
+[HyperOverlay.CopyFiles]
+HyperOverlay.sys
+
+[HyperOverlay.Service]
+DisplayName  = "HTKIS HyperDisk X Overlay MiniFilter"
+ServiceType  = 2
+StartType    = 0
+ErrorControl = 1
+ServiceBinary = %12%\HyperOverlay.sys
+AddReg       = HyperOverlay.AddReg
+
+[HyperOverlay.AddReg]
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,"HyperOverlay Instance"
+HKR,"Instances\HyperOverlay Instance","Altitude",0x00000000,"390000"
+HKR,"Instances\HyperOverlay Instance","Flags",0x00010001,0x0
