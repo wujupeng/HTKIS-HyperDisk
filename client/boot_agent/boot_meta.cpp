@@ -1,6 +1,11 @@
 #include "boot_meta.h"
+#include "hd_frame_codec.h"
 #include <cstring>
 #include <fstream>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "ws2_32.lib")
 
 namespace hd::boot {
 
@@ -77,8 +82,88 @@ bool BootMetaCache::Save(const std::string& path) {
 }
 
 bool BootMetaCache::LoadFromServer(const std::string& server, uint16_t port) {
-    (void)server;
-    (void)port;
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return false;
+
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET) { WSACleanup(); return false; }
+
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    inet_pton(AF_INET, server.c_str(), &addr.sin_addr);
+
+    DWORD timeout = 10000;
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+
+    if (connect(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR) {
+        closesocket(sock);
+        WSACleanup();
+        return false;
+    }
+
+    using namespace hd::proto;
+
+    FrameHeader hdr{};
+    FrameCodec::EncodeHeader(
+        hdr,
+        Opcode::BLOCK_READ_REQ,
+        0,
+        1,
+        sizeof(BlockReadReqPayload),
+        meta_.image_id,
+        0,
+        1,
+        meta_.layer_id
+    );
+
+    uint8_t send_buf[FRAME_HDR_SIZE + sizeof(BlockReadReqPayload) + 4];
+    uint32_t total_len = 0;
+    BlockReadReqPayload req{};
+    req.image_id = meta_.image_id;
+    req.block_offset = 0;
+    req.block_count = 1;
+    req.layer_id = meta_.layer_id;
+
+    if (!FrameCodec::EncodeFrame(send_buf, sizeof(send_buf), hdr,
+            reinterpret_cast<const uint8_t*>(&req), sizeof(req), total_len)) {
+        closesocket(sock);
+        WSACleanup();
+        return false;
+    }
+
+    if (send(sock, reinterpret_cast<const char*>(send_buf), total_len, 0) == SOCKET_ERROR) {
+        closesocket(sock);
+        WSACleanup();
+        return false;
+    }
+
+    uint8_t recv_buf[65536];
+    int n = recv(sock, reinterpret_cast<char*>(recv_buf), sizeof(recv_buf), 0);
+    closesocket(sock);
+    WSACleanup();
+
+    if (n <= 0) return false;
+
+    FrameHeader rsp_hdr{};
+    uint8_t payload[65536];
+    uint32_t payload_len = 0;
+    if (!FrameCodec::DecodeFrame(recv_buf, static_cast<uint32_t>(n), rsp_hdr, payload, sizeof(payload), payload_len)) {
+        return false;
+    }
+
+    if (rsp_hdr.opcode == static_cast<uint8_t>(Opcode::BLOCK_READ_RSP) && payload_len > 0) {
+        auto* rsp = reinterpret_cast<BlockReadRspPayload*>(payload);
+        if (rsp->status == 0 && payload_len > sizeof(BlockReadRspPayload)) {
+            size_t data_len = payload_len - sizeof(BlockReadRspPayload);
+            if (data_len >= sizeof(BootMeta)) {
+                memcpy(&meta_, payload + sizeof(BlockReadRspPayload), sizeof(BootMeta));
+                valid_ = (meta_.magic == BOOT_META_MAGIC) && ValidateCrc();
+                return valid_;
+            }
+        }
+    }
+
     return false;
 }
 

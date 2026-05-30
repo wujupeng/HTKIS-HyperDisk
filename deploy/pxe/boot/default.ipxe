@@ -1,0 +1,25 @@
+#!ipxe
+# HTKIS HyperDisk X — Default iPXE Boot Script
+# B3-T02: Chain-load BootAgent from HTTP
+#
+# This script is served by Nginx at http://10.10.100.10/boot/default.ipxe
+# iPXE executes this after being chain-loaded by PXE ROM.
+
+echo "HTKIS HyperDisk X — iPXE Boot Script"
+echo "======================================"
+
+# --- Network Configuration ---
+# iPXE already has DHCP from PXE phase
+set server:http 10.10.100.10
+set server:storage 10.10.200.10
+
+# --- Boot Agent Download ---
+echo "Downloading BootAgent from ${server:http}..."
+kernel http://${server:http}/boot/hd_boot_agent.exe \
+    server=${server:storage} \
+    port=9527 \
+    meta=http://${server:http}/boot/boot.meta
+
+# --- Boot ---
+echo "Starting BootAgent..."
+boot

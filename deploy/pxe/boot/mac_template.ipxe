@@ -1,0 +1,25 @@
+#!ipxe
+# HTKIS HyperDisk X — MAC-specific iPXE Boot Script Template
+# B3-T02: Per-terminal boot script (served at /boot/{mac}.ipxe)
+#
+# dnsmasq can be configured to serve per-MAC scripts:
+#   dhcp-boot=tag:ipxe,http://10.10.100.10/boot/${mac:hexhyp}.ipxe
+# This allows per-terminal image assignment.
+
+echo "HTKIS HyperDisk X — Terminal ${mac} Boot"
+echo "=========================================="
+
+set server:http 10.10.100.10
+set server:storage 10.10.200.10
+set terminal:mac ${mac}
+
+# --- Boot Agent with terminal identity ---
+echo "Downloading BootAgent for terminal ${mac}..."
+kernel http://${server:http}/boot/hd_boot_agent.exe \
+    server=${server:storage} \
+    port=9527 \
+    terminal=${mac} \
+    meta=http://${server:http}/boot/${mac}/boot.meta
+
+echo "Starting BootAgent for terminal ${mac}..."
+boot
