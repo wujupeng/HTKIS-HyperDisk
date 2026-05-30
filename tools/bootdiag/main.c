@@ -86,7 +86,21 @@ void bootdiag_output_result(const BOOTDIAG_CONTEXT* ctx, const BOOTDIAG_RESULT* 
 }
 
 int bootdiag_gate_check(const BOOTDIAG_CONTEXT* ctx) {
-    return (ctx->total_fail == 0) ? 0 : 1;
+    return (bootdiag_critical_fail_count(ctx) > 0) ? 1 : 0;
+}
+
+int bootdiag_is_critical_check(uint8_t check_id) {
+    return (check_id >= 1 && check_id <= BOOTDIAG_CHECK_CRITICAL_COUNT) ? 1 : 0;
+}
+
+uint32_t bootdiag_critical_fail_count(const BOOTDIAG_CONTEXT* ctx) {
+    uint32_t count = 0;
+    for (int i = 0; i < BOOTDIAG_CHECK_CRITICAL_COUNT; i++) {
+        if (ctx->results[i].result == BOOTDIAG_RESULT_FAIL) {
+            count++;
+        }
+    }
+    return count;
 }
 
 void bootdiag_update_boot_meta_flags(const BOOTDIAG_CONTEXT* ctx) {
@@ -246,14 +260,23 @@ int main(int argc, char* argv[]) {
                     (unsigned long long)ctx.total_elapsed_ms);
 
     if (bootdiag_gate_check(&ctx) == 0) {
-        bootdiag_output(&ctx, "ALL CHECKS PASSED — safe to proceed to BootMgr");
+        if (ctx.total_fail == 0) {
+            bootdiag_output(&ctx, "ALL CHECKS PASSED — safe to proceed to BootMgr");
+        } else {
+            bootdiag_output(&ctx, "CRITICAL CHECKS PASSED — non-critical failures, degraded boot allowed");
+            for (int i = BOOTDIAG_CHECK_CRITICAL_COUNT; i < BOOTDIAG_CHECK_COUNT; i++) {
+                if (ctx.results[i].result == BOOTDIAG_RESULT_FAIL) {
+                    bootdiag_output(&ctx, "  WARN V%d (%s): %s", i + 1, ctx.results[i].check_name, ctx.results[i].detail);
+                }
+            }
+        }
         ctx.bootdiag_executed = 1;
     } else {
-        bootdiag_output(&ctx, "CHECKS FAILED — blocking BootMgr startup");
-        bootdiag_output(&ctx, "Failed checks:");
-        for (int i = 0; i < BOOTDIAG_CHECK_COUNT; i++) {
+        bootdiag_output(&ctx, "CRITICAL CHECKS FAILED — blocking BootMgr startup");
+        bootdiag_output(&ctx, "Critical failures:");
+        for (int i = 0; i < BOOTDIAG_CHECK_CRITICAL_COUNT; i++) {
             if (ctx.results[i].result == BOOTDIAG_RESULT_FAIL) {
-                bootdiag_output(&ctx, "  V%d (%s): %s", i + 1, ctx.results[i].check_name, ctx.results[i].detail);
+                bootdiag_output(&ctx, "  FAIL V%d (%s): %s", i + 1, ctx.results[i].check_name, ctx.results[i].detail);
             }
         }
         ctx.bootdiag_executed = 1;

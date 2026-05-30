@@ -10,6 +10,9 @@
 #define BOOTDIAG_RESULT_FAIL    1
 #define BOOTDIAG_RESULT_SKIP    2
 #define BOOTDIAG_RESULT_TIMEOUT 3
+#define BOOTDIAG_RESULT_WARN    4
+
+#define BOOTDIAG_CHECK_CRITICAL_COUNT 3
 
 #define BOOTDIAG_OUTPUT_COM1    0
 #define BOOTDIAG_OUTPUT_CONSOLE 1
@@ -63,3 +66,5 @@ uint32_t bootdiag_v7_ntfs(BOOTDIAG_CONTEXT* ctx, BOOTDIAG_RESULT* result);
 
 int bootdiag_gate_check(const BOOTDIAG_CONTEXT* ctx);
 void bootdiag_update_boot_meta_flags(const BOOTDIAG_CONTEXT* ctx);
+int bootdiag_is_critical_check(uint8_t check_id);
+uint32_t bootdiag_critical_fail_count(const BOOTDIAG_CONTEXT* ctx);

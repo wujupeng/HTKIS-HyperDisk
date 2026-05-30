@@ -46,10 +46,10 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     }
 
     DriverObject->DriverExtension->AddDevice = NULL;
-    DriverObject->MajorFunction[IRP_MJ_CREATE]         = NULL;
-    DriverObject->MajorFunction[IRP_MJ_CLOSE]          = NULL;
-    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = NULL;
-    DriverObject->MajorFunction[IRP_MJ_PNP]            = NULL;
+    DriverObject->MajorFunction[IRP_MJ_CREATE]         = HdBusDispatchCreate;
+    DriverObject->MajorFunction[IRP_MJ_CLOSE]          = HdBusDispatchCreate;
+    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = HdBusDispatchIoctl;
+    DriverObject->MajorFunction[IRP_MJ_PNP]            = HdBusDispatchPnp;
     DriverObject->DriverUnload                         = HdBusUnload;
 
     g_BusExtension = busExt;

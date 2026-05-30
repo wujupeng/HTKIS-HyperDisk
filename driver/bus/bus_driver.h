@@ -28,3 +28,6 @@ extern PHD_BUS_EXTENSION g_BusExtension;
 
 NTSTATUS HdBusCreateChildDevice(PHD_BUS_EXTENSION BusExt, PHD_DEVICE_CONFIG Config);
 NTSTATUS HdBusRemoveChildDevice(PHD_BUS_EXTENSION BusExt, ULONG ChildId);
+NTSTATUS HdBusDispatchPnp(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+NTSTATUS HdBusDispatchIoctl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+NTSTATUS HdBusDispatchCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp);

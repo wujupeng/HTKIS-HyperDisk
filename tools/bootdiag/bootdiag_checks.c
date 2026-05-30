@@ -143,6 +143,22 @@ uint32_t bootdiag_v1_gpt(BOOTDIAG_CONTEXT* ctx, BOOTDIAG_RESULT* result) {
         return BOOTDIAG_RESULT_FAIL;
     }
 
+    uint64_t my_lba = 0;
+    for (int i = 0; i < 8; i++) my_lba |= ((uint64_t)sector[24 + i]) << (i * 8);
+    if (my_lba != 1) {
+        result->error_code = 1018;
+        snprintf(result->detail, sizeof(result->detail), "MyLBA=%llu (expected 1)", (unsigned long long)my_lba);
+        return BOOTDIAG_RESULT_FAIL;
+    }
+
+    uint64_t alternate_lba = 0;
+    for (int i = 0; i < 8; i++) alternate_lba |= ((uint64_t)sector[32 + i]) << (i * 8);
+    if (alternate_lba == 0) {
+        result->error_code = 1019;
+        strncpy(result->detail, "AlternateLBA=0 (invalid, backup GPT missing)", sizeof(result->detail) - 1);
+        return BOOTDIAG_RESULT_FAIL;
+    }
+
     uint32_t stored_crc = sector[16] | (sector[17] << 8) | (sector[18] << 16) | (sector[19] << 24);
     uint8_t header_copy[92];
     memcpy(header_copy, sector, 92);
@@ -184,6 +200,16 @@ uint32_t bootdiag_v1_gpt(BOOTDIAG_CONTEXT* ctx, BOOTDIAG_RESULT* result) {
             snprintf(result->detail, sizeof(result->detail), "Cannot read partition entry LBA %u", 2 + s);
             return BOOTDIAG_RESULT_FAIL;
         }
+    }
+
+    uint32_t stored_part_crc = sector[88] | (sector[89] << 8) | (sector[90] << 16) | (sector[91] << 24);
+    uint32_t computed_part_crc = bootdiag_compute_crc32c(part_buf, num_entries * entry_size);
+    if (computed_part_crc != stored_part_crc) {
+        free(part_buf);
+        result->error_code = 1020;
+        snprintf(result->detail, sizeof(result->detail),
+                 "Partition table CRC mismatch: computed=0x%08X, stored=0x%08X", computed_part_crc, stored_part_crc);
+        return BOOTDIAG_RESULT_FAIL;
     }
 
     for (uint32_t i = 0; i < num_entries; i++) {
