@@ -819,6 +819,53 @@ hdlx.opcode == 0x01  # 仅显示BlockRead请求
 | 500 | INTERNAL_ERROR | 服务内部错误 |
 | 503 | SERVICE_UNAVAILABLE | 服务不可用 |
 
+### 15.3 Alpha阶段实际可用端点
+
+> 以下端点已在 192.168.2.80 上验证可用
+
+```bash
+# 健康检查（无需认证）
+curl http://192.168.2.80/health
+# 响应: {"status":"ok","version":"0.1.0","uptime_seconds":120}
+
+# Prometheus指标
+curl http://192.168.2.80/metrics
+# 响应: # HELP hd_gateway_up Gateway status ...
+
+# 列出镜像（Alpha返回空列表）
+curl http://192.168.2.80/api/v1/images
+# 响应: {"images":[]}
+
+# 列出终端（Alpha返回空列表）
+curl http://192.168.2.80/api/v1/terminals
+# 响应: {"terminals":[]}
+```
+
+### 15.4 gRPC服务端点
+
+使用 `grpcurl` 工具访问 gRPC 服务：
+
+```bash
+# 安装grpcurl
+go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
+# 列出MetadataCenter服务
+grpcurl -plaintext 192.168.2.80:50051 list
+# hyperdisk.metadata.MetadataService
+
+# 列出DNA Service服务
+grpcurl -plaintext 192.168.2.80:50052 list
+# hyperdisk.dna.DnaService
+
+# 列出Update Service服务
+grpcurl -plaintext 192.168.2.80:50053 list
+# hyperdisk.update.UpdateService
+
+# 调用MetadataCenter块查找
+grpcurl -plaintext -d '{"image_id":1,"block_offset":0,"block_count":1,"layer_id":0}' \
+  192.168.2.80:50051 hyperdisk.metadata.MetadataService/LookupBlock
+```
+
 ---
 
-*使用说明结束。下一步请参阅 [运维说明](operations.md)。*
+*使用说明结束。下一步请参阅 [运维手册](operations.md)。*

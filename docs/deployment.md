@@ -802,14 +802,15 @@ curl -X POST http://192.168.2.80/api/v1/images \
 - [ ] 索引已创建
 
 ### 服务
-- [ ] hyperdisk-metacenter 运行中
-- [ ] hyperdisk-imageserver 运行中
-- [ ] hyperdisk-gateway 运行中
+- [ ] hyperdisk-metacenter 运行中（gRPC :50051）
+- [ ] hyperdisk-gateway 运行中（HTTP :8080）
+- [ ] hyperdisk-dna 运行中（gRPC :50052）
+- [ ] hyperdisk-update 运行中（gRPC :50053）
 - [ ] 所有服务开机自启
 
 ### 网络
 - [ ] Nginx 运行中
-- [ ] 反向代理工作正常（`curl /health`）
+- [ ] 反向代理工作正常（`curl /health` 返回 `{"status":"ok"}`）
 - [ ] 管理控制台可访问
 - [ ] PXE引导服务正常（dnsmasq）
 
@@ -820,4 +821,70 @@ curl -X POST http://192.168.2.80/api/v1/images \
 
 ---
 
-*部署说明结束。下一步请参阅 [使用说明](usage.md) 和 [运维说明](operations.md)。*
+## 13. Alpha部署验证记录
+
+> 以下为 2026-05-30 在 Debian 13 (192.168.2.80) 上的实际部署验证结果
+
+### 环境信息
+
+| 项目 | 值 |
+|------|-----|
+| OS | Debian 13 (Trixie) |
+| 内核 | 6.12.73 |
+| CPU | 6核 |
+| RAM | 7.6GB |
+| NVMe | 119GB SSD |
+| Rust | rustc 1.96.0 + cargo 1.96.0 |
+| GCC | 14.2 |
+| CMake | 3.31 |
+| PostgreSQL | 17.9 |
+| RocksDB | 9.10 (librocksdb-dev) |
+| liburing | 2.9 |
+
+### 编译结果
+
+| 服务 | 语言 | 编译时间 | 二进制大小 | 输出路径 |
+|------|------|---------|-----------|---------|
+| hd-metadata-center | Rust | ~3min (增量) | 15MB | target/release/hd-metadata-center |
+| hd-api-gateway | Rust | ~3min (增量) | 4.5MB | target/release/hd-api-gateway |
+| hd-dna-service | Rust | ~3min (增量) | 4.3MB | target/release/hd-dna-service |
+| hd-update-service | Rust | ~3min (增量) | 4.4MB | target/release/hd-update-service |
+
+> 首次完整编译约15-30分钟（含依赖下载+编译）
+
+### 服务状态验证
+
+```bash
+# 所有服务运行状态
+systemctl is-active hyperdisk-metacenter  # active
+systemctl is-active hyperdisk-gateway     # active
+systemctl is-active hyperdisk-dna         # active
+systemctl is-active hyperdisk-update      # active
+
+# 端口监听
+ss -tlnp | grep -E "50051|50052|50053|8080|80"
+# LISTEN 0.0.0.0:50051  (MetadataCenter gRPC)
+# LISTEN 0.0.0.0:50052  (DNA Service gRPC)
+# LISTEN 0.0.0.0:50053  (Update Service gRPC)
+# LISTEN 0.0.0.0:8080   (API Gateway HTTP)
+# LISTEN 0.0.0.0:80     (Nginx)
+
+# 健康检查
+curl http://192.168.2.80/health
+# {"status":"ok","version":"0.1.0","uptime_seconds":5}
+```
+
+### 已知Alpha限制
+
+| 限制 | 说明 | 计划 |
+|------|------|------|
+| ImageServer未部署 | C++20 ImageServer尚未在Debian编译 | Phase 2 |
+| gRPC无认证 | MetadataCenter/DNA/Update服务无认证 | Phase 2 |
+| 无PXE引导 | dnsmasq未配置 | Phase 2 |
+| 无Prometheus | 监控未部署 | Phase 2 |
+| Gateway无JWT | auth配置存在但未实现验证 | Phase 2 |
+| 无SSL/HTTPS | Nginx仅HTTP | 生产前必须启用 |
+
+---
+
+*部署说明结束。下一步请参阅 [用户操作手册](usage.md) 和 [运维手册](operations.md)。*

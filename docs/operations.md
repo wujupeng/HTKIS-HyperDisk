@@ -890,4 +890,112 @@ echo "=== Health Check Complete ==="
 
 ---
 
-*运维说明结束。返回 [部署说明](deployment.md) 或 [使用说明](usage.md)。*
+## 13. Alpha部署运维参考
+
+### 13.1 服务完整列表
+
+| 服务 | systemd名称 | 类型 | 端口 | 二进制路径 |
+|------|------------|------|------|-----------|
+| MetadataCenter | `hyperdisk-metacenter` | gRPC | 50051 | `/opt/hyperdisk/bin/hd-metadata-center` |
+| API Gateway | `hyperdisk-gateway` | HTTP | 8080 | `/opt/hyperdisk/bin/hd-api-gateway` |
+| DNA Service | `hyperdisk-dna` | gRPC | 50052 | `/opt/hyperdisk/bin/hd-dna-service` |
+| Update Service | `hyperdisk-update` | gRPC | 50053 | `/opt/hyperdisk/bin/hd-update-service` |
+| Nginx | `nginx` | HTTP | 80/443 | 系统包 |
+| PostgreSQL | `postgresql` | TCP | 5432 | 系统包 |
+
+### 13.2 配置文件位置
+
+| 文件 | 路径 | 说明 |
+|------|------|------|
+| MetadataCenter配置 | `/opt/hyperdisk/etc/metadata.toml` | gRPC监听+RocksDB+日志 |
+| API Gateway配置 | `/opt/hyperdisk/etc/gateway.toml` | HTTP监听+gRPC地址+日志 |
+| Nginx配置 | `/etc/nginx/sites-available/hyperdisk` | 反向代理+静态资源 |
+| PostgreSQL配置 | `/etc/postgresql/17/main/postgresql.conf` | 连接+内存+WAL |
+| PostgreSQL Schema | `/opt/hyperdisk/config/schema.sql` | 8表+索引定义 |
+| systemd服务 | `/etc/systemd/system/hyperdisk-*.service` | 服务单元文件 |
+
+### 13.3 实际日志位置
+
+| 服务 | 日志路径 | 说明 |
+|------|---------|------|
+| MetadataCenter | `journalctl -u hyperdisk-metacenter` | JSON格式，stdout |
+| API Gateway | `journalctl -u hyperdisk-gateway` | JSON格式，stdout |
+| DNA Service | `journalctl -u hyperdisk-dna` | JSON格式，stdout |
+| Update Service | `journalctl -u hyperdisk-update` | JSON格式，stdout |
+| Nginx | `/var/log/nginx/access.log` | Combined格式 |
+| Nginx Error | `/var/log/nginx/error.log` | 错误日志 |
+| PostgreSQL | `/var/log/postgresql/` | CSV格式 |
+
+### 13.4 快速诊断命令
+
+```bash
+# 一键检查所有服务状态
+for svc in hyperdisk-metacenter hyperdisk-gateway hyperdisk-dna hyperdisk-update; do
+    echo "$svc: $(systemctl is-active $svc)"
+done
+
+# 一键检查端口
+ss -tlnp | grep -E "50051|50052|50053|8080|80|5432"
+
+# 一键健康检查
+curl -s http://localhost:8080/health | python3 -m json.tool
+
+# 查看所有服务最近日志
+journalctl -u "hyperdisk-*" --since "10 minutes ago" --no-pager
+
+# 检查磁盘空间
+df -h /opt/hyperdisk/
+
+# 检查RocksDB数据大小
+du -sh /opt/hyperdisk/data/rocksdb/
+```
+
+### 13.5 服务重启顺序
+
+```bash
+# 正确的启动顺序
+sudo systemctl start postgresql
+sudo systemctl start hyperdisk-metacenter    # 依赖PG
+sleep 3
+sudo systemctl start hyperdisk-gateway       # 依赖MC
+sudo systemctl start hyperdisk-dna
+sudo systemctl start hyperdisk-update
+sudo systemctl reload nginx
+
+# 正确的停止顺序（反向）
+sudo systemctl reload nginx                  # 先停止接收新请求
+sudo systemctl stop hyperdisk-gateway
+sudo systemctl stop hyperdisk-dna
+sudo systemctl stop hyperdisk-update
+sudo systemctl stop hyperdisk-metacenter
+sudo systemctl stop postgresql               # 最后停PG
+```
+
+### 13.6 常见运维操作速查
+
+```bash
+# 查看MetadataCenter gRPC服务列表
+grpcurl -plaintext localhost:50051 list
+
+# 查看Gateway版本和运行时间
+curl -s http://localhost:8080/health | python3 -m json.tool
+
+# 查看Prometheus指标
+curl -s http://localhost:8080/metrics
+
+# 重载Nginx配置（不中断服务）
+sudo systemctl reload nginx
+
+# 重载PostgreSQL配置（不中断服务）
+sudo -u postgres psql -c "SELECT pg_reload_conf();"
+
+# 查看PostgreSQL活跃连接
+sudo -u postgres psql -c "SELECT count(*) FROM pg_stat_activity;"
+
+# 查看PostgreSQL数据库大小
+sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('hyperdisk'));"
+```
+
+---
+
+*运维手册结束。返回 [部署教程](deployment.md) 或 [用户操作手册](usage.md)。*
