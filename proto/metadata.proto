@@ -14,7 +14,7 @@ message LookupBlockRequest {
     uint64 image_id = 1;
     uint64 block_offset = 2;
     uint32 block_count = 3;
-    uint8  layer_id = 4;
+    uint32 layer_id = 4;
 }
 
 message LookupBlockResponse {
@@ -29,7 +29,7 @@ message RegisterBlockRequest {
     uint64 image_id = 1;
     uint64 block_offset = 2;
     uint32 block_count = 3;
-    uint8  layer_id = 4;
+    uint32 layer_id = 4;
     uint32 node_id = 5;
 }
 
@@ -59,7 +59,7 @@ message GetLayerMetaRequest {
 
 message GetLayerMetaResponse {
     uint32 layer_id = 1;
-    uint8  layer_type = 2;
+    uint32 layer_type = 2;
     uint64 total_size = 3;
     uint32 block_count = 4;
     uint32 ref_count = 5;

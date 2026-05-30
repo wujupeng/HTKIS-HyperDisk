@@ -16,16 +16,16 @@ message FingerprintRequest {
 }
 
 message PciDevice {
-    uint16 vendor_id = 1;
-    uint16 device_id = 2;
-    uint8  class_code = 3;
-    uint8  subclass = 4;
+    uint32 vendor_id = 1;
+    uint32 device_id = 2;
+    uint32 class_code = 3;
+    uint32 subclass = 4;
 }
 
 message CpuInfo {
     string model = 1;
     uint32 microcode = 2;
-    uint8  cores = 3;
+    uint32 cores = 3;
 }
 
 message BiosInfo {

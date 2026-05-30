@@ -1,55 +1,79 @@
-# Prerequisites
-*.d
-
-# Object files
+# Build
+build/
+out/
+cmake-build-*/
 *.o
-*.ko
 *.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
+*.exe
+*.dll
+*.sys
 *.lib
 *.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
 *.so
-*.so.*
 *.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
 *.pdb
+*.ilk
+*.exp
 
-# Kernel Module Compile Results
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln
+*.vcxproj*
+.idea/
+*.swp
+*~
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Node
+node_modules/
+dist/
+
+# Docker
+*.tar
+*.tar.gz
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Secrets
+*.env
+*.key
+*.pem
+*.p12
+credentials*
+
+# Logs
+*.log
+
+# Test
+coverage/
+
+# Temp deploy scripts
+_*.py
+deploy_ssh_*.py
+
+# CodeArts
+.arts/
+.codeartsdoer/
+
+# Build tools temp
+build_tools/
+
+# Kernel
+*.ko
 *.mod*
 *.cmd
 .tmp_versions/
 modules.order
 Module.symvers
-Mkfile.old
-dkms.conf
-
-# debug information files
 *.dwo
+*.dSYM/

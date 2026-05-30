@@ -17,6 +17,7 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+async-trait = { workspace = true }
 
 [build-dependencies]
 tonic-build = "0.12"
