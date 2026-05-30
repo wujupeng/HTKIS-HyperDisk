@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HTKIS HyperDisk X — 管理控制台</title>
-<link rel="icon" type="image/png" href="/static/icon.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -15,9 +14,36 @@
   --green:#22C55E;--green-glow:rgba(34,197,94,0.15);
   --yellow:#EAB308;--red:#EF4444;
   --radius:8px;--radius2:12px;
+  --wallpaper:none;
 }
-body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;letter-spacing:-0.01em;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;letter-spacing:-0.01em;min-height:100vh;position:relative}
+body::before{content:'';position:fixed;inset:0;z-index:-1;background:var(--wallpaper);opacity:0.08;pointer-events:none}
 a{color:var(--accent2);text-decoration:none}
+
+/* Login */
+.login-overlay{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-box{width:360px;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:40px 32px;position:relative;overflow:hidden}
+.login-box::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 50%,var(--accent-glow),transparent 60%);pointer-events:none}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px}
+.login-logo .icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#A855F7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff}
+.login-logo h1{font-size:18px;font-weight:600;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em}
+.form-input{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:14px;outline:none;transition:all .15s}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.login-btn{width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;box-shadow:0 0 16px var(--accent-glow);margin-top:8px}
+.login-btn:hover{background:var(--accent2)}
+.login-error{color:var(--red);font-size:12px;margin-top:8px;text-align:center;min-height:16px}
+
+/* Themes */
+.theme-picker{position:relative;display:inline-block}
+.theme-btn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .15s}
+.theme-dropdown{position:absolute;top:100%;right:0;margin-top:4px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:4px;min-width:140px;display:none;z-index:20}
+.theme-dropdown.open{display:block}
+.theme-opt{padding:7px 10px;font-size:12px;color:var(--text2);cursor:pointer;border-radius:4px;display:flex;align-items:center;gap:8px}
+.theme-opt:hover{background:rgba(255,255,255,0.06);color:var(--text)}
+.theme-opt.active{color:var(--accent2)}
+.theme-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 
 /* Layout */
 .app{display:flex;min-height:100vh}
@@ -38,6 +64,8 @@ a{color:var(--accent2);text-decoration:none}
 .topbar-right{display:flex;align-items:center;gap:12px}
 .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
 .topbar-badge{font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+.logout-btn{font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;transition:all .15s}
+.logout-btn:hover{color:var(--red);border-color:rgba(239,68,68,0.3)}
 
 .content{padding:24px}
 
@@ -55,9 +83,6 @@ a{color:var(--accent2);text-decoration:none}
 /* Stat */
 .stat-value{font-size:28px;font-weight:600;letter-spacing:-0.03em;margin-bottom:4px}
 .stat-label{font-size:12px;color:var(--text3)}
-.stat-change{font-size:11px;margin-top:4px}
-.stat-change.up{color:var(--green)}
-.stat-change.down{color:var(--red)}
 
 /* Table */
 .table-wrap{overflow-x:auto}
@@ -88,12 +113,21 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .pulse{animation:pulse 2s ease-in-out infinite}
 
-/* Page transitions */
+/* Page */
 .page{display:none}
 .page.active{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-/* Responsive */
+/* Tutorial */
+.tutorial-step{display:flex;gap:16px;margin-bottom:20px}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--accent-glow);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;margin-top:2px}
+.step-content{flex:1}
+.step-content h3{font-size:14px;font-weight:600;margin-bottom:6px}
+.step-content p{font-size:13px;color:var(--text2);line-height:1.7}
+.step-content code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent2);font-family:'JetBrains Mono',monospace}
+.step-content pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:8px 0;overflow-x:auto;font-size:12px;line-height:1.6;font-family:'JetBrains Mono',monospace;color:var(--text2)}
+.step-content .warn{color:var(--yellow);font-size:12px;margin-top:4px}
+
 @media(max-width:768px){
   .sidebar{display:none}
   .main{margin-left:0}
@@ -102,8 +136,29 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
 </style>
 </head>
 <body>
-<div class="app">
-  <!-- Sidebar -->
+
+<!-- Login Overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">H</div>
+      <h1>HyperDisk X</h1>
+    </div>
+    <div class="form-group">
+      <label>用户名</label>
+      <input type="text" class="form-input" id="login-user" autocomplete="username" placeholder="admin">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" class="form-input" id="login-pass" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app" id="app-main" style="display:none">
   <nav class="sidebar">
     <div class="sidebar-logo">
       <div class="icon">H</div>
@@ -114,7 +169,7 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
       仪表盘
     </div>
     <div class="nav-item" data-page="images" onclick="switchPage('images')">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.5 3h-13l-.5.5v9l.5.5h13l.5-.5v-9l-.5-.5zM14 12H2V4h12v8z"/><path d="M8 5a2 2 0 100 4 2 2 0 000-4zm0 3a1 1 0 110-2 1 1 0 010 2z"/></svg>
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.5 3h-13l-.5.5v9l.5.5h13l.5-.5v-9l-.5-.5zM14 12H2V4h12v8z"/></svg>
       镜像管理
     </div>
     <div class="nav-item" data-page="terminals" onclick="switchPage('terminals')">
@@ -125,6 +180,10 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1a6 6 0 110 12A6 6 0 018 2zm-.5 2v2.5H5v1h2.5V10h1V7.5H11v-1H8.5V4h-1z"/></svg>
       DNA 分组
     </div>
+    <div class="nav-item" data-page="tutorial" onclick="switchPage('tutorial')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm6.5-3.5v3.79l2.35 1.36.5-.87-2-1.16V4.5h-1z"/></svg>
+      镜像教程
+    </div>
     <div class="nav-item" data-page="services" onclick="switchPage('services')">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 14h13l.5-.5v-2l-.5-.5h-13l-.5.5v2l.5.5zM2 11h12v2H2v-2zm-.5-3h13l.5-.5v-2l-.5-.5h-13l-.5.5v2l.5.5zM2 5h12v2H2V5z"/></svg>
       服务状态
@@ -134,241 +193,222 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
     </div>
   </nav>
 
-  <!-- Main -->
   <div class="main">
     <header class="topbar">
       <div class="topbar-title" id="topbar-title">仪表盘</div>
       <div class="topbar-right">
         <span class="status-dot pulse"></span>
-        <span style="font-size:12px;color:var(--green)">系统运行中</span>
+        <span style="font-size:12px;color:var(--green)">运行中</span>
         <span class="topbar-badge" id="uptime-badge">--</span>
+        <div class="theme-picker">
+          <button class="theme-btn" onclick="toggleThemePicker()">主题 ▾</button>
+          <div class="theme-dropdown" id="theme-dropdown">
+            <div class="theme-opt active" onclick="setTheme('default')"><div class="theme-dot" style="background:#6366F1"></div>Indigo</div>
+            <div class="theme-opt" onclick="setTheme('emerald')"><div class="theme-dot" style="background:#10B981"></div>Emerald</div>
+            <div class="theme-opt" onclick="setTheme('rose')"><div class="theme-dot" style="background:#F43F5E"></div>Rose</div>
+            <div class="theme-opt" onclick="setTheme('amber')"><div class="theme-dot" style="background:#F59E0B"></div>Amber</div>
+            <div class="theme-opt" onclick="setTheme('cyan')"><div class="theme-dot" style="background:#06B6D4"></div>Cyan</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">退出</button>
       </div>
     </header>
 
     <div class="content">
-      <!-- Dashboard Page -->
+      <!-- Dashboard -->
       <div class="page active" id="page-dashboard">
-        <div class="section">
-          <div class="grid-4">
-            <div class="card">
-              <div class="card-title">在线终端</div>
-              <div class="stat-value" id="stat-terminals">0</div>
-              <div class="stat-label">台终端在线</div>
-            </div>
-            <div class="card">
-              <div class="card-title">镜像总数</div>
-              <div class="stat-value" id="stat-images">0</div>
-              <div class="stat-label">个镜像已注册</div>
-            </div>
-            <div class="card">
-              <div class="card-title">DNA 分组</div>
-              <div class="stat-value" id="stat-dna">0</div>
-              <div class="stat-label">个硬件分组</div>
-            </div>
-            <div class="card">
-              <div class="card-title">活跃服务</div>
-              <div class="stat-value" id="stat-services">4</div>
-              <div class="stat-label">/ 4 个服务运行</div>
-            </div>
-          </div>
+        <div class="section"><div class="grid-4">
+          <div class="card"><div class="card-title">在线终端</div><div class="stat-value" id="stat-terminals">0</div><div class="stat-label">台终端在线</div></div>
+          <div class="card"><div class="card-title">镜像总数</div><div class="stat-value" id="stat-images">0</div><div class="stat-label">个镜像已注册</div></div>
+          <div class="card"><div class="card-title">DNA 分组</div><div class="stat-value" id="stat-dna">0</div><div class="stat-label">个硬件分组</div></div>
+          <div class="card"><div class="card-title">活跃服务</div><div class="stat-value">4</div><div class="stat-label">/ 4 个服务运行</div></div>
+        </div></div>
+        <div class="section"><div class="section-header"><div class="section-title">服务状态</div></div>
+          <div class="card"><div class="table-wrap"><table>
+            <thead><tr><th>服务</th><th>类型</th><th>端口</th><th>状态</th><th>运行时间</th></tr></thead>
+            <tbody>
+              <tr><td>MetadataCenter</td><td>gRPC</td><td>50051</td><td><span class="badge badge-green">active</span></td><td id="svc-gw-uptime">--</td></tr>
+              <tr><td>API Gateway</td><td>HTTP</td><td>8080</td><td><span class="badge badge-green">active</span></td><td id="svc-mc-uptime">--</td></tr>
+              <tr><td>DNA Service</td><td>gRPC</td><td>50052</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
+              <tr><td>Update Service</td><td>gRPC</td><td>50053</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
+              <tr><td>Nginx</td><td>HTTP</td><td>80</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
+              <tr><td>PostgreSQL</td><td>TCP</td><td>5432</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
+            </tbody>
+          </table></div></div>
         </div>
-
-        <div class="section">
-          <div class="section-header">
-            <div class="section-title">服务状态</div>
-          </div>
-          <div class="card">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>服务</th><th>类型</th><th>端口</th><th>状态</th><th>运行时间</th></tr></thead>
-                <tbody id="services-tbody">
-                  <tr><td>MetadataCenter</td><td>gRPC</td><td>50051</td><td><span class="badge badge-green">active</span></td><td id="svc-mc-uptime">--</td></tr>
-                  <tr><td>API Gateway</td><td>HTTP</td><td>8080</td><td><span class="badge badge-green">active</span></td><td id="svc-gw-uptime">--</td></tr>
-                  <tr><td>DNA Service</td><td>gRPC</td><td>50052</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
-                  <tr><td>Update Service</td><td>gRPC</td><td>50053</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
-                  <tr><td>Nginx</td><td>HTTP</td><td>80</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
-                  <tr><td>PostgreSQL</td><td>TCP</td><td>5432</td><td><span class="badge badge-green">active</span></td><td>--</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <div class="section-header">
-            <div class="section-title">Alpha 里程碑</div>
-          </div>
-          <div class="grid-5" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
-            <div class="card" style="border-color:rgba(34,197,94,0.3)">
-              <div style="font-size:24px;font-weight:700;color:var(--accent2);margin-bottom:4px">A</div>
-              <div style="font-size:12px;font-weight:500;margin-bottom:2px">WinPE挂载</div>
-              <div style="font-size:11px;color:var(--text3)">块设备mount</div>
-              <div style="margin-top:8px"><span class="badge badge-yellow">进行中</span></div>
-            </div>
-            <div class="card">
-              <div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">B</div>
-              <div style="font-size:12px;font-weight:500;margin-bottom:2px">BootMgr加载</div>
-              <div style="font-size:11px;color:var(--text3)">0x7B不发生</div>
-              <div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div>
-            </div>
-            <div class="card">
-              <div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">C</div>
-              <div style="font-size:12px;font-weight:500;margin-bottom:2px">桌面可见</div>
-              <div style="font-size:11px;color:var(--text3)">文件CRUD</div>
-              <div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div>
-            </div>
-            <div class="card">
-              <div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">D</div>
-              <div style="font-size:12px;font-weight:500;margin-bottom:2px">断网30秒</div>
-              <div style="font-size:11px;color:var(--text3)">不崩溃</div>
-              <div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div>
-            </div>
-            <div class="card">
-              <div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">E</div>
-              <div style="font-size:12px;font-weight:500;margin-bottom:2px">100台并发</div>
-              <div style="font-size:11px;color:var(--text3)">P95≤120s</div>
-              <div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div>
-            </div>
+        <div class="section"><div class="section-header"><div class="section-title">Alpha 里程碑</div></div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+            <div class="card" style="border-color:rgba(99,102,241,0.3)"><div style="font-size:24px;font-weight:700;color:var(--accent2);margin-bottom:4px">A</div><div style="font-size:12px;font-weight:500;margin-bottom:2px">WinPE挂载</div><div style="font-size:11px;color:var(--text3)">块设备mount</div><div style="margin-top:8px"><span class="badge badge-yellow">进行中</span></div></div>
+            <div class="card"><div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">B</div><div style="font-size:12px;font-weight:500;margin-bottom:2px">BootMgr加载</div><div style="font-size:11px;color:var(--text3)">0x7B不发生</div><div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div></div>
+            <div class="card"><div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">C</div><div style="font-size:12px;font-weight:500;margin-bottom:2px">桌面可见</div><div style="font-size:11px;color:var(--text3)">文件CRUD</div><div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div></div>
+            <div class="card"><div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">D</div><div style="font-size:12px;font-weight:500;margin-bottom:2px">断网30秒</div><div style="font-size:11px;color:var(--text3)">不崩溃</div><div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div></div>
+            <div class="card"><div style="font-size:24px;font-weight:700;color:var(--text3);margin-bottom:4px">E</div><div style="font-size:12px;font-weight:500;margin-bottom:2px">100台并发</div><div style="font-size:11px;color:var(--text3)">P95≤120s</div><div style="margin-top:8px"><span class="badge" style="color:var(--text3)">待开始</span></div></div>
           </div>
         </div>
       </div>
 
-      <!-- Images Page -->
+      <!-- Images -->
       <div class="page" id="page-images">
-        <div class="section-header">
-          <div class="section-title">镜像管理</div>
-          <button class="btn-primary btn" onclick="alert('Alpha阶段：功能开发中')">+ 上传镜像</button>
-        </div>
-        <div class="card">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>镜像ID</th><th>名称</th><th>大小</th><th>块数</th><th>创建时间</th></tr></thead>
-              <tbody id="images-tbody">
-                <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:32px">暂无镜像 — Alpha阶段</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <div class="section-header"><div class="section-title">镜像管理</div><button class="btn-primary btn" onclick="alert('Alpha阶段：功能开发中')">+ 上传镜像</button></div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>镜像ID</th><th>名称</th><th>大小</th><th>块数</th><th>创建时间</th></tr></thead>
+          <tbody id="images-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:32px">暂无镜像 — 请参考「镜像教程」制作</td></tr></tbody>
+        </table></div></div>
       </div>
 
-      <!-- Terminals Page -->
+      <!-- Terminals -->
       <div class="page" id="page-terminals">
-        <div class="section-header">
-          <div class="section-title">终端管理</div>
-          <button class="btn" onclick="refreshTerminals()">刷新</button>
-        </div>
-        <div class="card">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>终端ID</th><th>主机名</th><th>状态</th><th>镜像</th><th>最后心跳</th></tr></thead>
-              <tbody id="terminals-tbody">
-                <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:32px">暂无终端 — 等待PXE启动</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <div class="section-header"><div class="section-title">终端管理</div><button class="btn" onclick="refreshTerminals()">刷新</button></div>
+        <div class="card"><div class="table-wrap"><table>
+          <thead><tr><th>终端ID</th><th>主机名</th><th>状态</th><th>镜像</th><th>最后心跳</th></tr></thead>
+          <tbody id="terminals-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:32px">暂无终端 — 等待PXE启动</td></tr></tbody>
+        </table></div></div>
       </div>
 
-      <!-- DNA Page -->
+      <!-- DNA -->
       <div class="page" id="page-dna">
-        <div class="section-header">
-          <div class="section-title">DNA 分组</div>
-        </div>
+        <div class="section-header"><div class="section-title">DNA 分组</div></div>
         <div class="grid-2">
-          <div class="card">
-            <div class="card-title">分组概览</div>
-            <div style="padding:16px 0;text-align:center;color:var(--text3)">
-              <div style="font-size:48px;font-weight:200;color:var(--text);margin-bottom:8px">0</div>
-              <div>个DNA分组</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">硬件指纹分布</div>
-            <div style="padding:16px 0;text-align:center;color:var(--text3);font-size:12px">
-              终端PXE启动后自动识别硬件指纹并分组
-            </div>
-          </div>
+          <div class="card"><div class="card-title">分组概览</div><div style="padding:16px 0;text-align:center;color:var(--text3)"><div style="font-size:48px;font-weight:200;color:var(--text);margin-bottom:8px">0</div><div>个DNA分组</div></div></div>
+          <div class="card"><div class="card-title">硬件指纹分布</div><div style="padding:16px 0;text-align:center;color:var(--text3);font-size:12px">终端PXE启动后自动识别硬件指纹并分组</div></div>
         </div>
       </div>
 
-      <!-- Services Page -->
-      <div class="page" id="page-services">
-        <div class="section-header">
-          <div class="section-title">服务状态</div>
-          <button class="btn" onclick="refreshHealth()">刷新健康检查</button>
+      <!-- Tutorial -->
+      <div class="page" id="page-tutorial">
+        <div class="section-header"><div class="section-title">Dell 终端镜像制作教程</div></div>
+        <div class="card">
+          <div class="tutorial-step"><div class="step-num">1</div><div class="step-content">
+            <h3>准备 Windows 安装源</h3>
+            <p>下载 Windows 11 24H2 ISO (企业版推荐)。挂载ISO到 <code>D:\win11_iso</code>。准备一台Dell OptiPlex终端（3050/3060/3070/3080/3090/5000/7000均可）。</p>
+          </div></div>
+
+          <div class="tutorial-step"><div class="step-num">2</div><div class="step-content">
+            <h3>创建 WinPE 基础镜像</h3>
+            <p>使用 Windows ADK 创建 WinPE：</p>
+            <pre># 安装 Windows ADK + WinPE 插件
+# 以管理员运行 Deployment and Imaging Tools Environment
+
+copype amd64 C:\WinPE_HD
+
+# 挂载 WinPE 启动镜像
+mount C:\WinPE_HD\media\sources\boot.wim C:\WinPE_mount</pre>
+          </div></div>
+
+          <div class="step-content"><div class="step-num">3</div><div class="step-content">
+            <h3>注入 HyperDisk 组件</h3>
+            <p>将编译好的客户端组件注入WinPE：</p>
+            <pre># 注入 bootdiag.exe (7项启动诊断)
+copy /Y build\bin\Release\bootdiag.exe C:\WinPE_mount\HyperDisk\
+
+# 注入 boot_replay_analyzer.exe (IO录制分析)
+copy /Y build\bin\Release\boot_replay_analyzer.exe C:\WinPE_mount\HyperDisk\
+
+# 创建 boot.meta 配置
+echo [meta] > C:\WinPE_mount\HyperDisk\boot.meta
+echo version=1 >> C:\WinPE_mount\HyperDisk\boot.meta
+echo image_id=1 >> C:\WinPE_mount\HyperDisk\boot.meta
+echo block_size=4096 >> C:\WinPE_mount\HyperDisk\boot.meta
+echo [servers] >> C:\WinPE_mount\HyperDisk\boot.meta
+echo primary=10.10.200.10:9090 >> C:\WinPE_mount\HyperDisk\boot.meta</pre>
+          </div></div>
+
+          <div class="tutorial-step"><div class="step-num">4</div><div class="step-content">
+            <h3>添加 Dell 驱动到 WinPE</h3>
+            <p>从 <a href="https://www.dell.com/support" target="_blank">Dell 支持站点</a> 下载对应机型的 WinPE 驱动包（网卡+存储）：</p>
+            <pre># 注入Dell网卡驱动 (PXE启动必需)
+dism /image:C:\WinPE_mount /Add-Driver /Driver:D:\dell_drivers\network /Recurse
+
+# 注入Dell存储驱动 (NVMe必需)
+dism /image:C:\WinPE_mount /Add-Driver /Driver:D:\dell_drivers\storage /Recurse
+
+# 常见Dell OptiPlex网卡驱动:
+#   Intel I219-V → e1r653x.inf
+#   Intel I225-V → e2f683x.inf</pre>
+            <div class="warn">注意: 不同Dell机型的驱动不同，务必下载对应型号的WinPE驱动包</div>
+          </div></div>
+
+          <div class="tutorial-step"><div class="step-num">5</div><div class="step-content">
+            <h3>配置 WinPE 启动脚本</h3>
+            <p>编辑 <code>startnet.cmd</code> 添加HyperDisk启动流程：</p>
+            <pre>echo %TIME% Starting HyperDisk X Boot Agent >> X:\HyperDisk\boot.log
+
+# 运行bootdiag 7项诊断
+X:\HyperDisk\bootdiag.exe --config X:\HyperDisk\boot.meta
+if %ERRORLEVEL% NEQ 0 (
+    echo BOOTDIAG FAILED - Halting >> X:\HyperDisk\boot.log
+    pause
+    goto :EOF
+)
+
+# 启动Boot Replay录制
+start /B X:\HyperDisk\boot_replay_analyzer.exe --record
+
+# 连接ImageServer获取块数据
+# (由BootAgent自动完成)</pre>
+          </div></div>
+
+          <div class="tutorial-step"><div class="step-num">6</div><div class="step-content">
+            <h3>提交 WinPE 并上传到服务器</h3>
+            <pre># 卸载并提交
+dism /unmount-wim /mountdir:C:\WinPE_mount /commit
+
+# 生成WIM文件 (约200-400MB)
+# 上传到HyperDisk服务器
+scp C:\WinPE_HD\media\sources\boot.wim \
+    debian@10.10.300.10:/opt/hyperdisk/data/images/winpe_dell_optiplex.wim
+
+# 通过API注册镜像
+curl -X POST http://10.10.300.10/api/v1/images \
+  -H "Content-Type: application/json" \
+  -d '{"name":"winpe-dell-optiplex-alpha","total_size":419430400,"block_count":102400}'</pre>
+          </div></div>
+
+          <div class="tutorial-step"><div class="step-num">7</div><div class="step-content">
+            <h3>制作完整 Windows 镜像 (可选)</h3>
+            <p>如需完整Windows桌面（非WinPE），使用DISM捕获已安装系统：</p>
+            <pre># 在Dell终端上安装完整Windows + 应用
+# 通用化 (移除硬件特定信息)
+sysprep /generalize /oobe /shutdown
+
+# 从WinPE启动，捕获系统分区
+dism /capture-image /imagefile:D:\win11_dell_full.wim \
+    /capturedir:C:\ /name:"Win11-Dell-OptiPlex-Full" \
+    /compress:max
+
+# 按层分离上传 (OS层 + 驱动层 + 应用层)
+# OS层: Windows基础系统 (~8GB)
+# 驱动层: Dell驱动+DNA分组 (~2GB)
+# 应用层: 游戏/办公软件 (~10GB)</pre>
+            <div class="warn">完整Windows镜像较大(20GB+)，Alpha阶段建议先使用WinPE镜像验证启动链</div>
+          </div></div>
+
+          <div class="tutorial-step"><div class="step-num">8</div><div class="step-content">
+            <h3>使用项目提供的脚本 (推荐)</h3>
+            <p>项目提供了自动化镜像构建脚本 <code>tools/mini_image/build_mini_image.ps1</code>：</p>
+            <pre># 一键构建最小WinPE镜像 (包含bootdiag+replay)
+.\tools\mini_image\build_mini_image.ps1
+
+# 脚本自动执行:
+# 1. 创建WinPE工作区
+# 2. 注入bootdiag.exe
+# 3. 注入boot_replay_analyzer.exe
+# 4. 添加必要启动脚本
+# 5. 生成WIM文件</pre>
+          </div></div>
         </div>
+      </div>
+
+      <!-- Services -->
+      <div class="page" id="page-services">
+        <div class="section-header"><div class="section-title">服务状态</div><button class="btn" onclick="refreshHealth()">刷新</button></div>
         <div class="grid-3">
-          <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:500">MetadataCenter</div>
-              <span class="badge badge-green" id="svc-mc-status">active</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);line-height:1.8">
-              <div>类型: gRPC</div>
-              <div>端口: <span style="color:var(--text)">50051</span></div>
-              <div>语言: <span style="color:var(--text)">Rust</span></div>
-              <div>依赖: PostgreSQL, RocksDB</div>
-            </div>
-          </div>
-          <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:500">API Gateway</div>
-              <span class="badge badge-green" id="svc-gw-status">active</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);line-height:1.8">
-              <div>类型: HTTP</div>
-              <div>端口: <span style="color:var(--text)">8080</span></div>
-              <div>语言: <span style="color:var(--text)">Rust + axum</span></div>
-              <div>依赖: MetadataCenter</div>
-            </div>
-          </div>
-          <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:500">DNA Service</div>
-              <span class="badge badge-green">active</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);line-height:1.8">
-              <div>类型: gRPC</div>
-              <div>端口: <span style="color:var(--text)">50052</span></div>
-              <div>语言: <span style="color:var(--text)">Rust</span></div>
-              <div>依赖: 无</div>
-            </div>
-          </div>
-          <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:500">Update Service</div>
-              <span class="badge badge-green">active</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);line-height:1.8">
-              <div>类型: gRPC</div>
-              <div>端口: <span style="color:var(--text)">50053</span></div>
-              <div>语言: <span style="color:var(--text)">Rust</span></div>
-              <div>依赖: 无</div>
-            </div>
-          </div>
-          <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:500">Nginx</div>
-              <span class="badge badge-green">active</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);line-height:1.8">
-              <div>类型: HTTP/HTTPS</div>
-              <div>端口: <span style="color:var(--text)">80, 443</span></div>
-              <div>角色: 反向代理 + SSL终端</div>
-            </div>
-          </div>
-          <div class="card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <div style="font-size:13px;font-weight:500">PostgreSQL</div>
-              <span class="badge badge-green">active</span>
-            </div>
-            <div style="font-size:12px;color:var(--text3);line-height:1.8">
-              <div>类型: TCP</div>
-              <div>端口: <span style="color:var(--text)">5432</span></div>
-              <div>版本: <span style="color:var(--text)">17.9</span></div>
-              <div>数据库: <span style="color:var(--text)">hyperdisk</span></div>
-            </div>
-          </div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:13px;font-weight:500">MetadataCenter</div><span class="badge badge-green">active</span></div><div style="font-size:12px;color:var(--text3);line-height:1.8"><div>类型: gRPC</div><div>端口: <span style="color:var(--text)">50051</span></div><div>语言: <span style="color:var(--text)">Rust</span></div><div>依赖: PostgreSQL, RocksDB</div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:13px;font-weight:500">API Gateway</div><span class="badge badge-green">active</span></div><div style="font-size:12px;color:var(--text3);line-height:1.8"><div>类型: HTTP</div><div>端口: <span style="color:var(--text)">8080</span></div><div>语言: <span style="color:var(--text)">Rust + axum</span></div><div>依赖: MetadataCenter</div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:13px;font-weight:500">DNA Service</div><span class="badge badge-green">active</span></div><div style="font-size:12px;color:var(--text3);line-height:1.8"><div>类型: gRPC</div><div>端口: <span style="color:var(--text)">50052</span></div><div>语言: <span style="color:var(--text)">Rust</span></div><div>依赖: 无</div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:13px;font-weight:500">Update Service</div><span class="badge badge-green">active</span></div><div style="font-size:12px;color:var(--text3);line-height:1.8"><div>类型: gRPC</div><div>端口: <span style="color:var(--text)">50053</span></div><div>语言: <span style="color:var(--text)">Rust</span></div><div>依赖: 无</div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:13px;font-weight:500">Nginx</div><span class="badge badge-green">active</span></div><div style="font-size:12px;color:var(--text3);line-height:1.8"><div>类型: HTTP/HTTPS</div><div>端口: <span style="color:var(--text)">80, 443</span></div><div>角色: 反向代理 + SSL终端</div></div></div>
+          <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:13px;font-weight:500">PostgreSQL</div><span class="badge badge-green">active</span></div><div style="font-size:12px;color:var(--text3);line-height:1.8"><div>类型: TCP</div><div>端口: <span style="color:var(--text)">5432</span></div><div>版本: <span style="color:var(--text)">17.9</span></div><div>数据库: <span style="color:var(--text)">hyperdisk</span></div></div></div>
         </div>
       </div>
     </div>
@@ -376,103 +416,118 @@ tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
 </div>
 
 <script>
-const API_BASE = window.location.origin;
+const AUTH_USER='admin',AUTH_PASS='admin123';
+const THEMES={
+  default:{accent:'#6366F1',accent2:'#818CF8',glow:'rgba(99,102,241,0.15)',wallpaper:'none'},
+  emerald:{accent:'#10B981',accent2:'#34D399',glow:'rgba(16,185,129,0.15)',wallpaper:'radial-gradient(ellipse at 20% 50%,rgba(16,185,129,0.1),transparent 70%)'},
+  rose:{accent:'#F43F5E',accent2:'#FB7185',glow:'rgba(244,63,94,0.15)',wallpaper:'radial-gradient(ellipse at 80% 20%,rgba(244,63,94,0.08),transparent 60%)'},
+  amber:{accent:'#F59E0B',accent2:'#FBBF24',glow:'rgba(245,158,11,0.15)',wallpaper:'radial-gradient(ellipse at 50% 80%,rgba(245,158,11,0.08),transparent 60%)'},
+  cyan:{accent:'#06B6D4',accent2:'#22D3EE',glow:'rgba(6,182,212,0.15)',wallpaper:'radial-gradient(ellipse at 30% 30%,rgba(6,182,212,0.08),transparent 50%)'},
+};
 
-function switchPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const page = document.getElementById('page-' + name);
-  const nav = document.querySelector(`[data-page="${name}"]`);
-  if (page) page.classList.add('active');
-  if (nav) nav.classList.add('active');
-  const titles = {dashboard:'仪表盘',images:'镜像管理',terminals:'终端管理',dna:'DNA 分组',services:'服务状态'};
-  document.getElementById('topbar-title').textContent = titles[name] || name;
+function doLogin(){
+  const u=document.getElementById('login-user').value;
+  const p=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-error');
+  if(u===AUTH_USER&&p===AUTH_PASS){
+    sessionStorage.setItem('hd_auth','1');
+    err.textContent='';
+    document.getElementById('login-overlay').style.display='none';
+    document.getElementById('app-main').style.display='flex';
+    refresh();
+  }else{
+    err.textContent='用户名或密码错误';
+  }
 }
-
-async function fetchJSON(url) {
-  try {
-    const r = await fetch(url);
-    return await r.json();
-  } catch(e) {
-    return null;
+function doLogout(){
+  sessionStorage.removeItem('hd_auth');
+  document.getElementById('app-main').style.display='none';
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-error').textContent='';
+}
+function checkAuth(){
+  if(sessionStorage.getItem('hd_auth')==='1'){
+    document.getElementById('login-overlay').style.display='none';
+    document.getElementById('app-main').style.display='flex';
+    refresh();
   }
 }
 
-async function refreshHealth() {
-  const data = await fetchJSON(API_BASE + '/health');
-  if (data) {
-    const uptime = data.uptime_seconds || 0;
-    const h = Math.floor(uptime / 3600);
-    const m = Math.floor((uptime % 3600) / 60);
-    const s = uptime % 60;
-    const uptimeStr = h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
-    document.getElementById('uptime-badge').textContent = `运行 ${uptimeStr}`;
-    document.getElementById('svc-gw-uptime').textContent = uptimeStr;
-  }
+function toggleThemePicker(){
+  document.getElementById('theme-dropdown').classList.toggle('open');
+}
+function setTheme(name){
+  const t=THEMES[name];if(!t)return;
+  const r=document.documentElement.style;
+  r.setProperty('--accent',t.accent);
+  r.setProperty('--accent2',t.accent2);
+  r.setProperty('--accent-glow',t.glow);
+  r.setProperty('--wallpaper',t.wallpaper);
+  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('active'));
+  event.target.closest('.theme-opt').classList.add('active');
+  document.getElementById('theme-dropdown').classList.remove('open');
+  localStorage.setItem('hd_theme',name);
+}
+function restoreTheme(){
+  const name=localStorage.getItem('hd_theme')||'default';
+  const t=THEMES[name];if(!t)return;
+  const r=document.documentElement.style;
+  r.setProperty('--accent',t.accent);
+  r.setProperty('--accent2',t.accent2);
+  r.setProperty('--accent-glow',t.glow);
+  r.setProperty('--wallpaper',t.wallpaper);
+  document.querySelectorAll('.theme-opt').forEach(o=>{
+    o.classList.toggle('active',o.textContent.trim().toLowerCase()===name||(name==='default'&&o.textContent.trim()==='Indigo'));
+  });
 }
 
-async function refreshImages() {
-  const data = await fetchJSON(API_BASE + '/api/v1/images');
-  if (data && data.images && data.images.length > 0) {
-    document.getElementById('stat-images').textContent = data.images.length;
-    const tbody = document.getElementById('images-tbody');
-    tbody.innerHTML = data.images.map(img => `<tr>
-      <td>${img.image_id}</td>
-      <td style="color:var(--text)">${img.name}</td>
-      <td>${formatSize(img.total_size)}</td>
-      <td>${img.block_count}</td>
-      <td>${formatDate(img.created_at)}</td>
-    </tr>`).join('');
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.addEventListener('click',e=>{if(!e.target.closest('.theme-picker'))document.getElementById('theme-dropdown').classList.remove('open')});
+
+const API_BASE=window.location.origin;
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const page=document.getElementById('page-'+name);
+  const nav=document.querySelector(`[data-page="${name}"]`);
+  if(page)page.classList.add('active');
+  if(nav)nav.classList.add('active');
+  const titles={dashboard:'仪表盘',images:'镜像管理',terminals:'终端管理',dna:'DNA 分组',tutorial:'镜像教程',services:'服务状态'};
+  document.getElementById('topbar-title').textContent=titles[name]||name;
+}
+async function fetchJSON(url){try{const r=await fetch(url);return await r.json()}catch(e){return null}}
+async function refreshHealth(){
+  const data=await fetchJSON(API_BASE+'/health');
+  if(data){
+    const u=data.uptime_seconds||0;
+    const h=Math.floor(u/3600),m=Math.floor((u%3600)/60),s=u%60;
+    const str=h>0?`${h}h ${m}m`:m>0?`${m}m ${s}s`:`${s}s`;
+    document.getElementById('uptime-badge').textContent=`运行 ${str}`;
+    document.getElementById('svc-gw-uptime').textContent=str;
   }
 }
-
-async function refreshTerminals() {
-  const data = await fetchJSON(API_BASE + '/api/v1/terminals');
-  if (data && data.terminals) {
-    document.getElementById('stat-terminals').textContent = data.terminals.length;
-    if (data.terminals.length > 0) {
-      const tbody = document.getElementById('terminals-tbody');
-      tbody.innerHTML = data.terminals.map(t => `<tr>
-        <td>${t.terminal_id}</td>
-        <td style="color:var(--text)">${t.hostname}</td>
-        <td><span class="badge ${statusBadge(t.status)}">${t.status}</span></td>
-        <td>—</td>
-        <td>${formatDate(t.last_heartbeat)}</td>
-      </tr>`).join('');
+async function refreshImages(){
+  const data=await fetchJSON(API_BASE+'/api/v1/images');
+  if(data&&data.images&&data.images.length>0){
+    document.getElementById('stat-images').textContent=data.images.length;
+    document.getElementById('images-tbody').innerHTML=data.images.map(i=>`<tr><td>${i.image_id}</td><td style="color:var(--text)">${i.name}</td><td>${fmtSize(i.total_size)}</td><td>${i.block_count}</td><td>${fmtDate(i.created_at)}</td></tr>`).join('');
+  }
+}
+async function refreshTerminals(){
+  const data=await fetchJSON(API_BASE+'/api/v1/terminals');
+  if(data&&data.terminals){
+    document.getElementById('stat-terminals').textContent=data.terminals.length;
+    if(data.terminals.length>0){
+      document.getElementById('terminals-tbody').innerHTML=data.terminals.map(t=>`<tr><td>${t.terminal_id}</td><td style="color:var(--text)">${t.hostname}</td><td><span class="badge ${t.status==='online'?'badge-green':t.status==='degraded'?'badge-yellow':'badge-red'}">${t.status}</span></td><td>—</td><td>${fmtDate(t.last_heartbeat)}</td></tr>`).join('');
     }
   }
 }
-
-function statusBadge(status) {
-  if (status === 'online') return 'badge-green';
-  if (status === 'degraded') return 'badge-yellow';
-  if (status === 'offline') return 'badge-red';
-  return 'badge-blue';
-}
-
-function formatSize(bytes) {
-  if (!bytes) return '—';
-  const units = ['B','KB','MB','GB','TB'];
-  let i = 0;
-  while (bytes >= 1024 && i < 4) { bytes /= 1024; i++; }
-  return bytes.toFixed(1) + ' ' + units[i];
-}
-
-function formatDate(ts) {
-  if (!ts) return '—';
-  const d = new Date(ts > 1e12 ? ts : ts * 1000);
-  return d.toLocaleString('zh-CN');
-}
-
-// Auto-refresh
-async function refresh() {
-  await refreshHealth();
-  await refreshImages();
-  await refreshTerminals();
-}
-
-refresh();
-setInterval(refresh, 10000);
+function fmtSize(b){if(!b)return'—';const u=['B','KB','MB','GB','TB'];let i=0;while(b>=1024&&i<4){b/=1024;i++}return b.toFixed(1)+' '+u[i]}
+function fmtDate(t){if(!t)return'—';const d=new Date(t>1e12?t:t*1000);return d.toLocaleString('zh-CN')}
+async function refresh(){await refreshHealth();await refreshImages();await refreshTerminals()}
+restoreTheme();checkAuth();setInterval(()=>{if(sessionStorage.getItem('hd_auth')==='1')refresh()},10000);
 </script>
 </body>
 </html>
