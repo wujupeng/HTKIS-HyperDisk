@@ -1,0 +1,67 @@
+syntax = "proto3";
+package hyperdisk.dna;
+
+service DnaService {
+    rpc CollectFingerprint(FingerprintRequest) returns (FingerprintResponse);
+    rpc MatchDnaGroup(MatchDnaRequest) returns (MatchDnaResponse);
+    rpc GetDriverCombo(GetDriverComboRequest) returns (GetDriverComboResponse);
+}
+
+message FingerprintRequest {
+    uint64 terminal_id = 1;
+    repeated PciDevice pci_devices = 2;
+    string acpi_hash = 3;
+    CpuInfo cpu_info = 4;
+    BiosInfo bios_info = 5;
+}
+
+message PciDevice {
+    uint16 vendor_id = 1;
+    uint16 device_id = 2;
+    uint8  class_code = 3;
+    uint8  subclass = 4;
+}
+
+message CpuInfo {
+    string model = 1;
+    uint32 microcode = 2;
+    uint8  cores = 3;
+}
+
+message BiosInfo {
+    string vendor = 1;
+    string version = 2;
+    string date = 3;
+}
+
+message FingerprintResponse {
+    bytes  dna_digest = 1;
+    uint32 dna_group_id = 2;
+    bool   is_new_group = 3;
+}
+
+message MatchDnaRequest {
+    bytes dna_digest = 1;
+}
+
+message MatchDnaResponse {
+    uint32 dna_group_id = 1;
+    double match_score = 2;
+}
+
+message GetDriverComboRequest {
+    uint32 dna_group_id = 1;
+    uint64 image_id = 2;
+}
+
+message GetDriverComboResponse {
+    uint32 driver_layer_id = 1;
+    repeated DriverEntry drivers = 2;
+    double score = 3;
+}
+
+message DriverEntry {
+    string inf_path = 1;
+    string hardware_id = 2;
+    string version = 3;
+}

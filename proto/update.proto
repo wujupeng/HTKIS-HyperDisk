@@ -1,0 +1,70 @@
+syntax = "proto3";
+package hyperdisk.update;
+
+service UpdateService {
+    rpc CreateCanaryStrategy(CreateCanaryRequest) returns (CanaryStrategy);
+    rpc AdvanceCanaryBatch(AdvanceCanaryRequest) returns (AdvanceCanaryResponse);
+    rpc Rollback(RollbackRequest) returns (RollbackResponse);
+    rpc CreateSnapshot(CreateSnapshotRequest) returns (SnapshotInfo);
+    rpc ComputeDelta(DeltaRequest) returns (DeltaResponse);
+}
+
+message CreateCanaryRequest {
+    uint64 target_image_id = 1;
+    uint32 total_batches = 2;
+    double fault_threshold = 3;
+    uint64 window_start = 4;
+    uint64 window_end = 5;
+}
+
+message CanaryStrategy {
+    uint64 strategy_id = 1;
+    uint64 target_image_id = 2;
+    string state = 3;
+    uint32 current_batch = 4;
+    uint32 total_batches = 5;
+    double fault_threshold = 6;
+}
+
+message AdvanceCanaryRequest {
+    uint64 strategy_id = 1;
+    bool  approved = 2;
+}
+
+message AdvanceCanaryResponse {
+    string new_state = 1;
+    uint32 current_batch = 2;
+}
+
+message RollbackRequest {
+    uint64 strategy_id = 1;
+    uint64 snapshot_id = 2;
+}
+
+message RollbackResponse {
+    bool success = 1;
+    uint64 elapsed_ms = 2;
+}
+
+message CreateSnapshotRequest {
+    uint64 image_id = 1;
+    string name = 2;
+}
+
+message SnapshotInfo {
+    uint64 snapshot_id = 1;
+    uint64 image_id = 2;
+    string name = 3;
+    uint64 created_at = 4;
+}
+
+message DeltaRequest {
+    uint64 source_version = 1;
+    uint64 target_version = 2;
+}
+
+message DeltaResponse {
+    repeated uint64 add_blocks = 1;
+    repeated uint64 modify_blocks = 2;
+    repeated uint64 delete_blocks = 3;
+}

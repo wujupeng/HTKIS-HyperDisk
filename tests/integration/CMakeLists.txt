@@ -1,0 +1,2 @@
+add_executable(hd_test_boot_flow test_boot_flow.cpp)
+add_executable(hd_test_block_io test_block_io.cpp)

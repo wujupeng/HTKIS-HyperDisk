@@ -1,0 +1,24 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y \
+    gcc-13 g++-13 \
+    cmake \
+    libboost-all-dev \
+    liburing-dev \
+    uuid-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CC=gcc-13
+ENV CXX=g++-13
+
+WORKDIR /opt/hyperdisk
+COPY . .
+
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_DRIVER=OFF \
+    -DBUILD_CLIENT=OFF \
+    -DBUILD_SERVER=ON \
+    -DBUILD_TESTS=OFF \
+    && cmake --build build -j$(nproc)
+
+CMD ["/opt/hyperdisk/build/server/image_server/hd_image_server"]

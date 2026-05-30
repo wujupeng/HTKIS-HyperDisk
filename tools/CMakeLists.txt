@@ -1,0 +1,2 @@
+add_subdirectory(bootdiag)
+add_subdirectory(replay_recorder)

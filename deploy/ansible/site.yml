@@ -1,0 +1,53 @@
+---
+- name: HTKIS HyperDisk X - Debian 13 Server Bring-Up
+  hosts: hyperdisk_servers
+  become: true
+  vars:
+    hd_user: hyperdisk
+    hd_home: /opt/hyperdisk
+    hd_version: "0.1.0"
+    pxe_vlan: 100
+    storage_vlan: 200
+    mgmt_vlan: 300
+    pxe_ip: "10.10.100.10/24"
+    storage_ip: "10.10.200.10/24"
+    mgmt_ip: "10.10.300.10/24"
+
+  pre_tasks:
+    - name: Check Debian version
+      assert:
+        that: ansible_distribution_major_version | int >= 13
+        fail_msg: "Requires Debian 13 (Trixie) or later"
+
+    - name: Check kernel version >= 6.1
+      shell: uname -r | cut -d. -f1-2
+      register: kernel_ver
+      changed_when: false
+      failed_when: kernel_ver.stdout is version('6.1', '<')
+
+    - name: Check io_uring support
+      stat:
+        path: /sys/kernel/debug/io_uring
+      register: io_uring_check
+      failed_when: not io_uring_check.stat.exists
+
+    - name: Check NVMe device exists
+      shell: lsblk -d -n -o ROTA | grep -q '^0'
+      register: nvme_check
+      changed_when: false
+      failed_when: nvme_check.rc != 0
+
+    - name: Check Intel NIC
+      shell: lspci -nn | grep -i 'ethernet' | grep -i 'intel'
+      register: intel_nic
+      changed_when: false
+      failed_when: intel_nic.rc != 0
+
+  roles:
+    - hd_env
+    - hd_network
+    - hd_database
+    - hd_metadata
+    - hd_imageserver
+    - hd_gateway
+    - hd_monitoring

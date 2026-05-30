@@ -1,0 +1,43 @@
+; HyperNet.sys - Network Block Transport Driver
+[Version]
+Signature   = "$Windows NT$"
+Class       = NetTrans
+ClassGuid   = {4D36E975-E325-11CE-BFC1-08002BE10318}
+Provider    = HTKIS
+CatalogFile = HyperNet.cat
+DriverVer   = 05/29/2026,0.1.0
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[SourceDisksNames]
+1 = "HyperDisk Installation Disk"
+
+[SourceDisksFiles]
+HyperNet.sys = 1
+
+[Manufacturer]
+%ManufacturerName% = Standard,NTamd64
+
+[Standard.NTamd64]
+%HDNet.DeviceDesc% = HDNet_Inst, ROOT\HYPERDISKNET
+
+[HDNet_Inst.NT]
+CopyFiles = HDNet_CopyFiles
+
+[HDNet_CopyFiles]
+HyperNet.sys
+
+[HDNet_Inst.NT.Services]
+AddService = HyperNet, 0x00000002, HDNet_Service
+
+[HDNet_Service]
+DisplayName  = "HyperDisk Network Block Transport"
+ServiceType  = 1
+StartType    = 3
+ErrorControl = 1
+ServiceBinary = %12%\HyperNet.sys
+
+[Strings]
+ManufacturerName = "HTKIS"
+HDNet.DeviceDesc = "HyperDisk Network Block Transport"

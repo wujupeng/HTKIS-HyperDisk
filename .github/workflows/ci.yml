@@ -1,0 +1,82 @@
+name: HyperDisk CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  server-cpp:
+    name: Server C++ Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-13 cmake libboost-all-dev liburing-dev uuid-dev
+      - name: Configure
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DBUILD_DRIVER=OFF \
+            -DBUILD_CLIENT=OFF \
+            -DBUILD_SERVER=ON \
+            -DBUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build -j$(nproc)
+      - name: Test
+        run: cd build && ctest --output-on-failure
+
+  server-rust:
+    name: Server Rust Build
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            server/target
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-${{ hashFiles('server/Cargo.lock') }}
+      - name: Build
+        working-directory: server
+        run: cargo build --release
+      - name: Test
+        working-directory: server
+        run: cargo test --release
+
+  client-cpp:
+    name: Client C++ Build
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DBUILD_DRIVER=OFF -DBUILD_CLIENT=ON -DBUILD_SERVER=OFF -DBUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }}
+
+  lint:
+    name: Code Style Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get install -y clang-format-17
+      - name: Check C/C++ format
+        run: |
+          find . -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
+            xargs clang-format-17 --dry-run --Werror
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Check Rust format
+        working-directory: server
+        run: cargo fmt -- --check

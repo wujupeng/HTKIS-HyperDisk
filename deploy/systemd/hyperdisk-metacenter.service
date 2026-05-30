@@ -1,0 +1,18 @@
+[Unit]
+Description=HTKIS HyperDisk Metadata Center
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
+
+[Service]
+Type=notify
+NotifyAccess=all
+User=hyperdisk
+Group=hyperdisk
+ExecStart=/opt/hyperdisk/bin/hd-metadata-center --config /opt/hyperdisk/config/metadata.toml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=131072
+WorkingDirectory=/opt/hyperdisk
+
+[Install]
+WantedBy=multi-user.target

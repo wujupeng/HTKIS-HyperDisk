@@ -1,0 +1,90 @@
+syntax = "proto3";
+package hyperdisk.metadata;
+
+service MetadataService {
+    rpc LookupBlock(LookupBlockRequest) returns (LookupBlockResponse);
+    rpc RegisterBlock(RegisterBlockRequest) returns (RegisterBlockResponse);
+    rpc GetImageMeta(GetImageMetaRequest) returns (GetImageMetaResponse);
+    rpc GetLayerMeta(GetLayerMetaRequest) returns (GetLayerMetaResponse);
+    rpc RegisterTerminal(RegisterTerminalRequest) returns (RegisterTerminalResponse);
+    rpc UpdateTerminalStatus(UpdateTerminalStatusRequest) returns (UpdateTerminalStatusResponse);
+}
+
+message LookupBlockRequest {
+    uint64 image_id = 1;
+    uint64 block_offset = 2;
+    uint32 block_count = 3;
+    uint8  layer_id = 4;
+}
+
+message LookupBlockResponse {
+    uint64 image_id = 1;
+    uint64 block_offset = 2;
+    uint32 block_count = 3;
+    uint32 node_id = 4;
+    bool   cache_hit = 5;
+}
+
+message RegisterBlockRequest {
+    uint64 image_id = 1;
+    uint64 block_offset = 2;
+    uint32 block_count = 3;
+    uint8  layer_id = 4;
+    uint32 node_id = 5;
+}
+
+message RegisterBlockResponse {
+    bool success = 1;
+}
+
+message GetImageMetaRequest {
+    uint64 image_id = 1;
+}
+
+message GetImageMetaResponse {
+    uint64 image_id = 1;
+    string name = 2;
+    uint64 total_size = 3;
+    uint32 block_count = 4;
+    uint32 os_layer_id = 5;
+    uint32 driver_layer_id = 6;
+    uint32 app_layer_id = 7;
+    uint64 created_at = 8;
+    uint64 updated_at = 9;
+}
+
+message GetLayerMetaRequest {
+    uint32 layer_id = 1;
+}
+
+message GetLayerMetaResponse {
+    uint32 layer_id = 1;
+    uint8  layer_type = 2;
+    uint64 total_size = 3;
+    uint32 block_count = 4;
+    uint32 ref_count = 5;
+    bytes  block_map_hash = 6;
+}
+
+message RegisterTerminalRequest {
+    uint64 terminal_id = 1;
+    string hostname = 2;
+    bytes  dna_digest = 3;
+    uint32 dna_group_id = 4;
+}
+
+message RegisterTerminalResponse {
+    bool success = 1;
+    uint64 session_id = 2;
+}
+
+message UpdateTerminalStatusRequest {
+    uint64 terminal_id = 1;
+    uint64 session_id = 2;
+    string status = 3;
+    uint32 cache_hit_rate = 4;
+}
+
+message UpdateTerminalStatusResponse {
+    bool success = 1;
+}

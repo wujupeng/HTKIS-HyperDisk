@@ -1,0 +1,6 @@
+add_executable(hd_test_protocol test_protocol.cpp)
+add_executable(hd_test_cache test_cache.cpp)
+add_executable(hd_test_overlay test_overlay.cpp)
+add_executable(hd_test_frame_codec test_frame_codec.cpp)
+target_compile_features(hd_test_frame_codec PRIVATE cxx_std_20)
+target_link_libraries(hd_test_frame_codec PRIVATE hd_client_common)

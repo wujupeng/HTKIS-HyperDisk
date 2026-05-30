@@ -1,0 +1,65 @@
+---
+- name: Install build toolchain and runtime dependencies
+  apt:
+    name:
+      - gcc-14
+      - g++-14
+      - rustc
+      - cargo
+      - cmake
+      - liburing-dev
+      - libprotobuf-dev
+      - protobuf-compiler
+      - libgrpc++-dev
+      - libboost-all-dev
+      - libssl-dev
+      - postgresql-16
+      - nginx
+      - prometheus
+      - grafana
+      - vlan
+      - bridge-utils
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Create hyperdisk user
+  user:
+    name: "{{ hd_user }}"
+    system: true
+    home: "{{ hd_home }}"
+    shell: /usr/sbin/nologin
+
+- name: Create data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ hd_user }}"
+    mode: '0755'
+  loop:
+    - "{{ hd_home }}/data"
+    - "{{ hd_home }}/data/metadata"
+    - "{{ hd_home }}/data/images"
+    - "{{ hd_home }}/data/cache"
+    - "{{ hd_home }}/data/logs"
+    - "{{ hd_home }}/config"
+    - "{{ hd_home }}/bin"
+
+- name: Verify io_uring kernel support
+  command: cat /proc/sys/kernel/io_uring_disabled
+  register: io_uring_disabled
+  changed_when: false
+  failed_when: io_uring_disabled.stdout != '0'
+
+- name: Set sysctl for io_uring and network
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+  loop:
+    - { name: 'vm.overcommit_memory', value: '1' }
+    - { name: 'net.core.somaxconn', value: '65535' }
+    - { name: 'net.core.rmem_max', value: '16777216' }
+    - { name: 'net.core.wmem_max', value: '16777216' }
+    - { name: 'fs.nr_open', value: '1048576' }
+    - { name: 'fs.file-max', value: '2097152' }

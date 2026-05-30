@@ -1,0 +1,20 @@
+[Unit]
+Description=HTKIS HyperDisk Image Server
+After=network-online.target hyperdisk-metacenter.service
+Wants=network-online.target hyperdisk-metacenter.service
+
+[Service]
+Type=notify
+NotifyAccess=all
+User=hyperdisk
+Group=hyperdisk
+ExecStart=/opt/hyperdisk/bin/hd_image_server --config /opt/hyperdisk/config/imageserver.toml
+Restart=on-failure
+RestartSec=5
+CPUAffinity=0-7
+LimitNOFILE=131072
+LimitMEMLOCK=infinity
+WorkingDirectory=/opt/hyperdisk
+
+[Install]
+WantedBy=multi-user.target

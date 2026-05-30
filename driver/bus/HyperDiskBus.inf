@@ -1,0 +1,43 @@
+; HyperDiskBus.sys - Virtual Bus Driver
+[Version]
+Signature   = "$Windows NT$"
+Class       = System
+ClassGuid   = {4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider    = HTKIS
+CatalogFile = HyperDiskBus.cat
+DriverVer   = 05/29/2026,0.1.0
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[SourceDisksNames]
+1 = "HyperDisk Installation Disk"
+
+[SourceDisksFiles]
+HyperDiskBus.sys = 1
+
+[Manufacturer]
+%ManufacturerName% = Standard,NTamd64
+
+[Standard.NTamd64]
+%HDBus.DeviceDesc% = HDBus_Inst, ROOT\HYPERDISKBUS
+
+[HDBus_Inst.NT]
+CopyFiles = HDBus_CopyFiles
+
+[HDBus_CopyFiles]
+HyperDiskBus.sys
+
+[HDBus_Inst.NT.Services]
+AddService = HyperDiskBus, 0x00000002, HDBus_Service
+
+[HDBus_Service]
+DisplayName  = "HyperDisk Virtual Bus"
+ServiceType  = 1
+StartType    = 3
+ErrorControl = 1
+ServiceBinary = %12%\HyperDiskBus.sys
+
+[Strings]
+ManufacturerName = "HTKIS"
+HDBus.DeviceDesc = "HyperDisk Virtual Bus Enumerator"
