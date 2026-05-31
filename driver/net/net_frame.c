@@ -40,7 +40,10 @@ NTSTATUS HdNetDeserializeFrame(PVOID Frame, ULONG FrameLen, PHD_NET_FRAME_HEADER
     RtlCopyMemory(Header, pHdr, HD_NET_FRAME_HDR_SIZE);
 
     if (Payload && PayloadLen && pHdr->PayloadLen > 0) {
-        ULONG copyLen = min(pHdr->PayloadLen, FrameLen - HD_NET_FRAME_HDR_SIZE);
+        ULONG copyLen = pHdr->PayloadLen;
+        if (FrameLen - HD_NET_FRAME_HDR_SIZE < pHdr->PayloadLen) {
+            copyLen = FrameLen - HD_NET_FRAME_HDR_SIZE;
+        }
         RtlCopyMemory(Payload, (PUCHAR)Frame + HD_NET_FRAME_HDR_SIZE, copyLen);
         *PayloadLen = copyLen;
     }

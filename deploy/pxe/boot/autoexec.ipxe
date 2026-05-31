@@ -1,0 +1,44 @@
+#!ipxe
+# HTKIS HyperDisk X - iPXE Autoexec Script
+# Runs automatically when iPXE starts
+# Must configure network (DHCP) before chain-loading
+
+echo HTKIS HyperDisk X - Autoexec
+echo ============================
+
+# Wait for network link
+echo Waiting for network link...
+iflink || goto no_link
+sleep 1
+
+# Configure network via DHCP
+echo Configuring network via DHCP...
+dhcp net0 || goto dhcp_fail
+echo Network configured: ${net0/ip} / ${net0/netmask} gw ${net0/gateway}
+
+# Chain to HTTP boot script
+echo Chain-loading boot script from 192.168.2.80...
+chain http://192.168.2.80/boot/default.ipxe || goto http_fail
+
+:http_fail
+echo HTTP chain failed, trying TFTP...
+chain tftp://192.168.2.80/default.ipxe || goto tftp_fail
+
+:dhcp_fail
+echo DHCP failed! Trying static config...
+ifconf --config static 192.168.2.211 255.255.255.0 192.168.2.254 net0 || goto no_link
+echo Static IP configured
+chain http://192.168.2.80/boot/default.ipxe || chain tftp://192.168.2.80/default.ipxe || goto error
+
+:no_link
+echo ERROR: No network link detected!
+goto error
+
+:tftp_fail
+echo TFTP also failed!
+
+:error
+echo ERROR: Failed to load boot script!
+echo Press any key to retry...
+prompt Press any key to retry
+reboot

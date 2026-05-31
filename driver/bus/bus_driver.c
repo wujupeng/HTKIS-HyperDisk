@@ -1,4 +1,7 @@
 #include "bus_driver.h"
+#include "../common/hd_serial.h"
+
+HD_SERIAL_DEBUG g_SerialDebug;
 
 PHD_BUS_EXTENSION g_BusExtension = NULL;
 

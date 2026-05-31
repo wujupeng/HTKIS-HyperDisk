@@ -34,9 +34,10 @@ AddService = HyperDiskBus, 0x00000002, HDBus_Service
 [HDBus_Service]
 DisplayName  = "HyperDisk Virtual Bus"
 ServiceType  = 1
-StartType    = 3
+StartType    = 0
 ErrorControl = 1
 ServiceBinary = %12%\HyperDiskBus.sys
+Group        = "System Bus Extender"
 
 [Strings]
 ManufacturerName = "HTKIS"

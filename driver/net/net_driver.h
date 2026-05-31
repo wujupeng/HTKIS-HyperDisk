@@ -1,9 +1,11 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
+#include <ntifs.h>
 #include <wsk.h>
 #include "hd_driver_ioctl.h"
+
+#define HD_MAGIC       0x48444B31
+#define HD_VERSION     0x0001
 
 #define HD_NET_MAX_CONNECTIONS     64
 #define HD_NET_DEFAULT_PORT        9527

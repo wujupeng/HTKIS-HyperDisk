@@ -1,8 +1,7 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
-#include <fltkrnl.h>
+#include <ntifs.h>
+#include <fltKernel.h>
 
 #define HD_OVERLAY_DEVICE_NAME L"\\Device\\HyperOverlay"
 #define HD_OVERLAY_ALTITUDE   L"390000"
@@ -33,10 +32,10 @@ typedef struct _HD_OVERLAY_EXTENSION {
 } HD_OVERLAY_EXTENSION, *PHD_OVERLAY_EXTENSION;
 
 NTSTATUS HdOverlayFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
-VOID HdOverlayFilterUnload(PDRIVER_OBJECT DriverObject);
+VOID HdOverlayFilterUnload(FLT_FILTER_UNLOAD_FLAGS Flags);
 
-NTSTATUS HdOverlayPreWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext);
-NTSTATUS HdOverlayPostWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags);
+FLT_PREOP_CALLBACK_STATUS HdOverlayPreWrite(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID *CompletionContext);
+FLT_POSTOP_CALLBACK_STATUS HdOverlayPostWrite(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags);
 
 NTSTATUS HdOverlayWriteRedirect(PHD_OVERLAY_EXTENSION OverlayExt, ULONGLONG BlockOffset, PVOID Data, ULONG Size);
 NTSTATUS HdOverlaySyncDirtyPages(PHD_OVERLAY_EXTENSION OverlayExt);

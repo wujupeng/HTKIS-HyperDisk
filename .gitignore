@@ -77,3 +77,6 @@ modules.order
 Module.symvers
 *.dwo
 *.dSYM/
+build_bb_analyzer/
+build_boot_agent/
+build_bootdiag/

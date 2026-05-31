@@ -1,25 +1,17 @@
 #!ipxe
-# HTKIS HyperDisk X — Default iPXE Boot Script
-# B3-T02: Chain-load BootAgent from HTTP
-#
-# This script is served by Nginx at http://10.10.100.10/boot/default.ipxe
-# iPXE executes this after being chain-loaded by PXE ROM.
+# HTKIS HyperDisk X - iPXE Boot Script (Alpha V1)
+# Uses wimboot to boot WinPE from HTTP
 
-echo "HTKIS HyperDisk X — iPXE Boot Script"
-echo "======================================"
+echo HTKIS HyperDisk X - iPXE Boot Script
+echo ======================================
+echo Loading WinPE via wimboot...
 
-# --- Network Configuration ---
-# iPXE already has DHCP from PXE phase
-set server:http 10.10.100.10
-set server:storage 10.10.200.10
+kernel http://192.168.2.80/boot/winpe/wimboot
+initrd http://192.168.2.80/boot/winpe/bootmgr.exe   bootmgr.exe
+initrd http://192.168.2.80/boot/winpe/bootmgfw.efi  bootmgfw.efi
+initrd http://192.168.2.80/boot/winpe/boot.sdi      boot.sdi
+initrd http://192.168.2.80/boot/winpe/bcd_uefi      BCD
+initrd http://192.168.2.80/boot/winpe/boot.wim      boot.wim
 
-# --- Boot Agent Download ---
-echo "Downloading BootAgent from ${server:http}..."
-kernel http://${server:http}/boot/hd_boot_agent.exe \
-    server=${server:storage} \
-    port=9527 \
-    meta=http://${server:http}/boot/boot.meta
-
-# --- Boot ---
-echo "Starting BootAgent..."
+echo Starting WinPE...
 boot

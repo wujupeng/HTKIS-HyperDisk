@@ -10,11 +10,10 @@ NTSTATUS HdReadRegistryString(PUNICODE_STRING RegistryPath, PWSTR ValueName, PUN
 
     RtlInitUnicodeString(&name, ValueName);
 
-    status = ZwOpenKey(&keyHandle, KEY_READ, &(OBJECT_ATTRIBUTES){
-        .Length = sizeof(OBJECT_ATTRIBUTES),
-        .ObjectName = RegistryPath,
-        .Attributes = OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
-    });
+    OBJECT_ATTRIBUTES objAttrs;
+    InitializeObjectAttributes(&objAttrs, RegistryPath, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    status = ZwOpenKey(&keyHandle, KEY_READ, &objAttrs);
 
     if (!NT_SUCCESS(status)) return status;
 

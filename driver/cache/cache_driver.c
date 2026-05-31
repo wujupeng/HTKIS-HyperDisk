@@ -6,19 +6,9 @@ extern HD_SERIAL_DEBUG g_SerialDebug;
 static HD_CACHE_EXTENSION g_CacheExt;
 
 static FLT_OPERATION_REGISTRATION g_Callbacks[] = {
-    {
-        IRP_MJ_READ,
-        0,
-        HdCachePreRead,
-        HdCachePostRead
-    },
-    {
-        IRP_MJ_WRITE,
-        0,
-        HdCachePreWrite,
-        NULL
-    },
-    { IRP_OPERATION_END }
+    { IRP_MJ_READ, 0, HdCachePreRead, HdCachePostRead, NULL },
+    { IRP_MJ_WRITE, 0, HdCachePreWrite, NULL, NULL },
+    { (UCHAR)-1, 0, NULL, NULL, NULL }
 };
 
 static FLT_CONTEXT_REGISTRATION g_ContextRegistration[] = {
@@ -29,10 +19,9 @@ static FLT_REGISTRATION g_FilterRegistration = {
     sizeof(FLT_REGISTRATION),
     FLT_REGISTRATION_VERSION,
     0,
-    NULL,
-    HdCacheFilterUnload,
-    g_Callbacks,
     g_ContextRegistration,
+    g_Callbacks,
+    HdCacheFilterUnload,
     NULL,
     NULL,
     NULL,
@@ -42,7 +31,7 @@ static FLT_REGISTRATION g_FilterRegistration = {
     NULL
 };
 
-static FLT_FILTER g_FilterHandle = NULL;
+static PFLT_FILTER g_FilterHandle = NULL;
 
 NTSTATUS HdCacheFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
@@ -59,13 +48,13 @@ NTSTATUS HdCacheFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING Registr
 
     status = FltRegisterFilter(DriverObject, &g_FilterRegistration, &g_FilterHandle);
     if (!NT_SUCCESS(status)) {
-        HdSerialWriteFormat(&g_SerialDebug, "[HDx:CACHE_LOADED] FltRegisterFilter failed: 0x%08X\r\n", status);
+        HdSerialWriteString(&g_SerialDebug, "[HDx:CACHE_LOADED] FltRegisterFilter failed\r\n");
         return status;
     }
 
     status = FltStartFiltering(g_FilterHandle);
     if (!NT_SUCCESS(status)) {
-        HdSerialWriteFormat(&g_SerialDebug, "[HDx:CACHE_LOADED] FltStartFiltering failed: 0x%08X\r\n", status);
+        HdSerialWriteString(&g_SerialDebug, "[HDx:CACHE_LOADED] FltStartFiltering failed\r\n");
         FltUnregisterFilter(g_FilterHandle);
         g_FilterHandle = NULL;
         return status;
@@ -77,9 +66,9 @@ NTSTATUS HdCacheFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING Registr
     return STATUS_SUCCESS;
 }
 
-VOID HdCacheFilterUnload(PDRIVER_OBJECT DriverObject)
+VOID HdCacheFilterUnload(FLT_FILTER_UNLOAD_FLAGS Flags)
 {
-    UNREFERENCED_PARAMETER(DriverObject);
+    UNREFERENCED_PARAMETER(Flags);
 
     if (g_FilterHandle) {
         FltUnregisterFilter(g_FilterHandle);
@@ -90,9 +79,8 @@ VOID HdCacheFilterUnload(PDRIVER_OBJECT DriverObject)
     HdSerialWriteString(&g_SerialDebug, "[HDx:CACHE_LOADED] HyperCache unloaded\r\n");
 }
 
-NTSTATUS HdCachePreRead(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext)
+FLT_PREOP_CALLBACK_STATUS HdCachePreRead(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID *CompletionContext)
 {
-    UNREFERENCED_PARAMETER(Instance);
     UNREFERENCED_PARAMETER(FltObjects);
 
     if (!g_CacheExt.IsStarted) {
@@ -106,22 +94,20 @@ NTSTATUS HdCachePreRead(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_R
     }
 
     g_CacheExt.CacheMissCount++;
-    *(PBOOLEAN)CompletionContext = FALSE;
     return FLT_PREOP_SUCCESS_WITH_CALLBACK;
 }
 
-NTSTATUS HdCachePostRead(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags)
+FLT_POSTOP_CALLBACK_STATUS HdCachePostRead(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags)
 {
-    UNREFERENCED_PARAMETER(Instance);
+    UNREFERENCED_PARAMETER(Data);
     UNREFERENCED_PARAMETER(FltObjects);
     UNREFERENCED_PARAMETER(CompletionContext);
     UNREFERENCED_PARAMETER(Flags);
     return FLT_POSTOP_FINISHED_PROCESSING;
 }
 
-NTSTATUS HdCachePreWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext)
+FLT_PREOP_CALLBACK_STATUS HdCachePreWrite(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID *CompletionContext)
 {
-    UNREFERENCED_PARAMETER(Instance);
     UNREFERENCED_PARAMETER(FltObjects);
     UNREFERENCED_PARAMETER(CompletionContext);
     return FLT_PREOP_SUCCESS_NO_CALLBACK;

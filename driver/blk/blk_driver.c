@@ -1,4 +1,7 @@
 #include "blk_driver.h"
+#include "../common/hd_serial.h"
+
+HD_SERIAL_DEBUG g_SerialDebug;
 
 static HD_IRP_TRACKER g_IrpTracker;
 
@@ -13,6 +16,32 @@ static ULONGLONG HdQueryTickCount64(VOID)
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
     UNREFERENCED_PARAMETER(RegistryPath);
+
+    HdSerialInitialize(&g_SerialDebug);
+    HdSerialWriteString(&g_SerialDebug, "[HDx:BLK_LOADED] HDBlk DriverEntry\r\n");
+
+    {
+        UNICODE_STRING hdnetName;
+        LARGE_INTEGER delay;
+        ULONG retry = 0;
+        RtlInitUnicodeString(&hdnetName, L"\\Device\\HyperDiskNet");
+        while (retry < 100) {
+            PDEVICE_OBJECT devObj = NULL;
+            PFILE_OBJECT fileObj = NULL;
+            NTSTATUS refStatus = IoGetDeviceObjectPointer(&hdnetName, FILE_READ_DATA, &fileObj, &devObj);
+            if (NT_SUCCESS(refStatus)) {
+                if (fileObj) ObDereferenceObject(fileObj);
+                HdSerialWriteString(&g_SerialDebug, "[HDx:BLK_LOADED] HDNet is ready\r\n");
+                break;
+            }
+            delay.QuadPart = -100000;
+            KeDelayExecutionThread(KernelMode, FALSE, &delay);
+            retry++;
+        }
+        if (retry >= 100) {
+            HdSerialWriteString(&g_SerialDebug, "[HDx:BLK_LOADED] WARNING: HDNet not ready after 10s, proceeding anyway\r\n");
+        }
+    }
 
     DriverObject->DriverExtension->AddDevice = NULL;
 

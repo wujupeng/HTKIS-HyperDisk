@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
+#include <ntifs.h>
 
 #define HD_COM1_BASE       0x3F8
 #define HD_COM1_BAUD       115200

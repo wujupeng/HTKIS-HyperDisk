@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
+#include <ntifs.h>
 #include <ntdddisk.h>
 #include "hd_driver_ioctl.h"
 

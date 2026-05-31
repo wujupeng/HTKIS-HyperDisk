@@ -1,8 +1,7 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
-#include <fltkrnl.h>
+#include <ntifs.h>
+#include <fltKernel.h>
 
 #define HD_CACHE_DEVICE_NAME L"\\Device\\HyperCache"
 #define HD_CACHE_ALTITUDE    L"380000"
@@ -24,11 +23,11 @@ typedef struct _HD_CACHE_EXTENSION {
 } HD_CACHE_EXTENSION, *PHD_CACHE_EXTENSION;
 
 NTSTATUS HdCacheFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
-VOID HdCacheFilterUnload(PDRIVER_OBJECT DriverObject);
+VOID HdCacheFilterUnload(FLT_FILTER_UNLOAD_FLAGS Flags);
 
-NTSTATUS HdCachePreRead(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext);
-NTSTATUS HdCachePostRead(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags);
-NTSTATUS HdCachePreWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext);
+FLT_PREOP_CALLBACK_STATUS HdCachePreRead(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID *CompletionContext);
+FLT_POSTOP_CALLBACK_STATUS HdCachePostRead(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags);
+FLT_PREOP_CALLBACK_STATUS HdCachePreWrite(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID *CompletionContext);
 
 PVOID HdCacheL1Lookup(PHD_CACHE_EXTENSION CacheExt, ULONGLONG BlockOffset);
 NTSTATUS HdCacheL1Insert(PHD_CACHE_EXTENSION CacheExt, ULONGLONG BlockOffset, PVOID Data, ULONG Size);

@@ -34,9 +34,10 @@ AddService = HyperNet, 0x00000002, HDNet_Service
 [HDNet_Service]
 DisplayName  = "HyperDisk Network Block Transport"
 ServiceType  = 1
-StartType    = 3
-ErrorControl = 1
+StartType    = 0
+ErrorControl = 3
 ServiceBinary = %12%\HyperNet.sys
+Group        = "Network"
 
 [Strings]
 ManufacturerName = "HTKIS"

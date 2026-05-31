@@ -6,13 +6,8 @@ extern HD_SERIAL_DEBUG g_SerialDebug;
 static HD_OVERLAY_EXTENSION g_OverlayExt;
 
 static FLT_OPERATION_REGISTRATION g_Callbacks[] = {
-    {
-        IRP_MJ_WRITE,
-        0,
-        HdOverlayPreWrite,
-        HdOverlayPostWrite
-    },
-    { IRP_OPERATION_END }
+    { IRP_MJ_WRITE, 0, HdOverlayPreWrite, HdOverlayPostWrite, NULL },
+    { (UCHAR)-1, 0, NULL, NULL, NULL }
 };
 
 static FLT_CONTEXT_REGISTRATION g_ContextRegistration[] = {
@@ -23,10 +18,9 @@ static FLT_REGISTRATION g_FilterRegistration = {
     sizeof(FLT_REGISTRATION),
     FLT_REGISTRATION_VERSION,
     0,
-    NULL,
-    HdOverlayFilterUnload,
-    g_Callbacks,
     g_ContextRegistration,
+    g_Callbacks,
+    HdOverlayFilterUnload,
     NULL,
     NULL,
     NULL,
@@ -36,7 +30,7 @@ static FLT_REGISTRATION g_FilterRegistration = {
     NULL
 };
 
-static FLT_FILTER g_FilterHandle = NULL;
+static PFLT_FILTER g_FilterHandle = NULL;
 
 NTSTATUS HdOverlayFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
@@ -62,13 +56,13 @@ NTSTATUS HdOverlayFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING Regis
 
     status = FltRegisterFilter(DriverObject, &g_FilterRegistration, &g_FilterHandle);
     if (!NT_SUCCESS(status)) {
-        HdSerialWriteFormat(&g_SerialDebug, "[HDx:OVERLAY_LOADED] FltRegisterFilter failed: 0x%08X\r\n", status);
+        HdSerialWriteString(&g_SerialDebug, "[HDx:OVERLAY_LOADED] FltRegisterFilter failed\r\n");
         return status;
     }
 
     status = FltStartFiltering(g_FilterHandle);
     if (!NT_SUCCESS(status)) {
-        HdSerialWriteFormat(&g_SerialDebug, "[HDx:OVERLAY_LOADED] FltStartFiltering failed: 0x%08X\r\n", status);
+        HdSerialWriteString(&g_SerialDebug, "[HDx:OVERLAY_LOADED] FltStartFiltering failed\r\n");
         FltUnregisterFilter(g_FilterHandle);
         g_FilterHandle = NULL;
         return status;
@@ -80,9 +74,9 @@ NTSTATUS HdOverlayFilterSetup(PDRIVER_OBJECT DriverObject, PUNICODE_STRING Regis
     return STATUS_SUCCESS;
 }
 
-VOID HdOverlayFilterUnload(PDRIVER_OBJECT DriverObject)
+VOID HdOverlayFilterUnload(FLT_FILTER_UNLOAD_FLAGS Flags)
 {
-    UNREFERENCED_PARAMETER(DriverObject);
+    UNREFERENCED_PARAMETER(Flags);
 
     if (g_FilterHandle) {
         FltUnregisterFilter(g_FilterHandle);
@@ -98,9 +92,8 @@ VOID HdOverlayFilterUnload(PDRIVER_OBJECT DriverObject)
     HdSerialWriteString(&g_SerialDebug, "[HDx:OVERLAY_LOADED] HyperOverlay unloaded\r\n");
 }
 
-NTSTATUS HdOverlayPreWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext)
+FLT_PREOP_CALLBACK_STATUS HdOverlayPreWrite(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID *CompletionContext)
 {
-    UNREFERENCED_PARAMETER(Instance);
     UNREFERENCED_PARAMETER(FltObjects);
     UNREFERENCED_PARAMETER(CompletionContext);
 
@@ -111,9 +104,9 @@ NTSTATUS HdOverlayPreWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFL
     return FLT_PREOP_SUCCESS_WITH_CALLBACK;
 }
 
-NTSTATUS HdOverlayPostWrite(PFLT_INSTANCE Instance, PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags)
+FLT_POSTOP_CALLBACK_STATUS HdOverlayPostWrite(PFLT_CALLBACK_DATA Data, PCFLT_RELATED_OBJECTS FltObjects, PVOID CompletionContext, FLT_POST_OPERATION_FLAGS Flags)
 {
-    UNREFERENCED_PARAMETER(Instance);
+    UNREFERENCED_PARAMETER(Data);
     UNREFERENCED_PARAMETER(FltObjects);
     UNREFERENCED_PARAMETER(CompletionContext);
     UNREFERENCED_PARAMETER(Flags);

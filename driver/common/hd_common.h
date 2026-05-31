@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
+#include <ntifs.h>
 
 VOID HdDebugPrint(PCSTR Format, ...);
 PVOID HdAllocatePool(SIZE_T Size, ULONG Tag);

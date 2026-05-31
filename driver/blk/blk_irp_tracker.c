@@ -45,7 +45,7 @@ VOID HdIrpTrackerSubmit(PHD_IRP_TRACKER Tracker, PIRP Irp, UCHAR MajorFn, UCHAR 
     entry->MinorFunction = MinorFn;
     entry->IoSize = 0;
 
-    IoReferenceIrp(Irp);
+    ObReferenceObject(Irp);
 
     KeAcquireSpinLock(&Tracker->Lock, &oldIrql);
     InsertTailList(&Tracker->ActiveListHead, &entry->ListEntry);
@@ -83,7 +83,7 @@ VOID HdIrpTrackerComplete(PHD_IRP_TRACKER Tracker, PIRP Irp)
     KeReleaseSpinLock(&Tracker->Lock, oldIrql);
 
     if (found) {
-        IoDereferenceIrp(Irp);
+        ObDereferenceObject(Irp);
         ExFreePoolWithTag(found, 'TRPH');
     }
 }

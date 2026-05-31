@@ -1,8 +1,6 @@
 #pragma once
 
-#include <windows.h>
-#include <ntddk.h>
-#include <wdm.h>
+#include <ntifs.h>
 
 #define HD_DEVICE_TYPE     0x8800
 #define HD_POOL_TAG        'KDHd'

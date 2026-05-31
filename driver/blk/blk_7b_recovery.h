@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ntddk.h>
-#include <wdm.h>
+#include <ntifs.h>
 
 #define HD_7B_MAX_RETRIES          3
 #define HD_7B_RETRY_INTERVAL_MS    1000

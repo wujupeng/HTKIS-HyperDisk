@@ -65,42 +65,8 @@ VOID HdSerialWriteString(PHD_SERIAL_DEBUG Serial, const char* Str)
 
 VOID HdSerialWriteFormat(PHD_SERIAL_DEBUG Serial, const char* Fmt, ...)
 {
-    char buf[256];
-    va_list args;
-    va_start(args, Fmt);
-
-    size_t len = 0;
-    const char* p = Fmt;
-    while (*p && len < sizeof(buf) - 1) {
-        if (*p == '%') {
-            p++;
-            if (*p == 'd') {
-                int val = va_arg(args, int);
-                char num[16];
-                for (int i = 0; val > 0 && i < 15; i++) {
-                    num[14 - i] = '0' + (val % 10);
-                    val /= 10;
-                    len++;
-                }
-            } else if (*p == 's') {
-                const char* s = va_arg(args, const char*);
-                while (*s && len < sizeof(buf) - 1) buf[len++] = *s++;
-            } else if (*p == 'x') {
-                unsigned int val = va_arg(args, unsigned int);
-                buf[len++] = '0'; buf[len++] = 'x';
-                for (int i = 7; i >= 0; i--) {
-                    buf[len++] = "0123456789abcdef"[(val >> (i * 4)) & 0xF];
-                }
-            }
-            p++;
-        } else {
-            buf[len++] = *p++;
-        }
-    }
-    va_end(args);
-    buf[len] = '\0';
-
-    HdSerialWriteString(Serial, buf);
+    if (!Serial->Initialized) return;
+    vDbgPrintExWithPrefix("", DPFLTR_DEFAULT_ID, DPFLTR_INFO_LEVEL, Fmt, (va_list)(&Fmt + 1));
 }
 
 VOID HdSerialDumpRingBuffer(PHD_SERIAL_DEBUG Serial)

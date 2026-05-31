@@ -1,5 +1,6 @@
-#include <ntddk.h>
-#include <wdm.h>
+#pragma once
+
+#include <ntifs.h>
 #include "hd_driver_ioctl.h"
 
 #define HD_BUS_DEVICE_NAME L"\\Device\\HyperDiskBus"

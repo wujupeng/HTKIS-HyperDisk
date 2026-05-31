@@ -1,5 +1,9 @@
 #include "net_driver.h"
 
+#ifndef AF_INET
+#define AF_INET 2
+#endif
+
 NTSTATUS HdNetConnect(PHD_NET_EXTENSION NetExt, PCHAR ServerAddr, USHORT Port, PULONG ConnIdx)
 {
     KIRQL oldIrql;
