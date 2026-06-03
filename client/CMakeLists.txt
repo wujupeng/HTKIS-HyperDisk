@@ -12,6 +12,8 @@ add_compile_definitions(
 
 add_compile_options(/wd4100)
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/common

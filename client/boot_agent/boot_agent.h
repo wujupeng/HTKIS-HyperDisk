@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include "blackbox_types.h"
 
 namespace hd::boot {
 
@@ -34,7 +35,7 @@ enum class BootFailCode : uint8_t {
 
 struct BootConfig {
     std::string server_address;
-    uint16_t    server_port        = 9527;
+    uint16_t    server_port        = 8080;
     uint64_t    image_id           = 0;
     std::string boot_script_url;
     std::string image_name;
@@ -46,10 +47,14 @@ struct BootConfig {
     uint16_t    meta_server_port   = 50051;
     std::string terminal_id;
     std::string local_meta_path    = "C:\\HyperDisk\\boot.meta";
+    std::string blackbox_path      = "C:\\HyperDisk\\blackbox\\boot.bin";
     int         dhcp_timeout_ms    = 5000;
     int         grpc_timeout_ms    = 3000;
     int         dl_timeout_ms      = 10000;
     int         max_retries        = 3;
+    std::string boot_id;
+    std::string machine_id;
+    std::string mac_address;
 };
 
 struct DhcpOption {
@@ -108,10 +113,13 @@ public:
     ~BootAgent() = default;
 
     int Run();
+    void ApplyConfig(const BootConfig& cfg) { config_ = cfg; }
 
 private:
     BootConfig config_;
     Com1Logger& log_ = Com1Logger::Instance();
+    hd::diag::BlackBoxRecorder& bb_ = hd::diag::BlackBoxRecorder::Instance();
+    uint64_t boot_start_ms_ = 0;
 
     int DiscoverServer();
     int RegisterTerminal();
@@ -119,8 +127,12 @@ private:
     int VerifyIntegrity();
     int InitializeVirtualDisk();
     int TransferControl();
+    int ReportTelemetry(const char* phase, const char* result, uint32_t duration_ms);
+    void RecordBbPhase(BootPhase phase, bool success, uint16_t latency_us);
 
     bool LoadFallbackConfig();
+    void GenerateBootId();
+    void GetMacAddress();
 };
 
 } // namespace hd::boot

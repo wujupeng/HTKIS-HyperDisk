@@ -43,6 +43,7 @@ public:
     bool LoadFromServer(const std::string& server, uint16_t port);
 
     const BootMeta& Meta() const { return meta_; }
+    void SetMeta(const BootMeta& m) { meta_ = m; valid_ = (m.magic == BOOT_META_MAGIC); }
     bool IsValid() const { return valid_; }
 
     std::string PrimaryServer() const;
