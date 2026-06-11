@@ -1,20 +1,20 @@
-; HyperNet.sys - Network Block Transport Driver
+; HyperNet.sys - INF for drvload in WinPE
 [Version]
 Signature   = "$Windows NT$"
 Class       = NetTrans
 ClassGuid   = {4D36E975-E325-11CE-BFC1-08002BE10318}
 Provider    = HTKIS
+DriverVer   = 06/04/2026,0.1.0
 CatalogFile = HyperNet.cat
-DriverVer   = 05/29/2026,0.1.0
 
 [DestinationDirs]
-DefaultDestDir = 12
+HDNet_CopyFiles = 12
 
 [SourceDisksNames]
-1 = "HyperDisk Installation Disk"
+1 = %InstallDisk%,,,
 
 [SourceDisksFiles]
-HyperNet.sys = 1
+HDNet.sys = 1
 
 [Manufacturer]
 %ManufacturerName% = Standard,NTamd64
@@ -26,7 +26,7 @@ HyperNet.sys = 1
 CopyFiles = HDNet_CopyFiles
 
 [HDNet_CopyFiles]
-HyperNet.sys
+HDNet.sys
 
 [HDNet_Inst.NT.Services]
 AddService = HyperNet, 0x00000002, HDNet_Service
@@ -36,9 +36,10 @@ DisplayName  = "HyperDisk Network Block Transport"
 ServiceType  = 1
 StartType    = 0
 ErrorControl = 3
-ServiceBinary = %12%\HyperNet.sys
+ServiceBinary = %12%\HDNet.sys
 Group        = "Network"
 
 [Strings]
 ManufacturerName = "HTKIS"
+InstallDisk = "HTKIS HyperDisk Driver Disk"
 HDNet.DeviceDesc = "HyperDisk Network Block Transport"

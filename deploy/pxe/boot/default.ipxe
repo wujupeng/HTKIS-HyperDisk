@@ -1,17 +1,22 @@
 #!ipxe
-# HTKIS HyperDisk X - iPXE Boot Script (Alpha V1)
+# HTKIS HyperDisk X - iPXE Boot Script (Alpha-B B1)
 # Uses wimboot to boot WinPE from HTTP
+# Strategy: inject startnet.cmd directly to override WIM's version
+# Fallback: also inject winpeshl.ini pointing to bootstrap.cmd
 
-echo HTKIS HyperDisk X - iPXE Boot Script
+echo HTKIS HyperDisk X - iPXE Boot Script (B1)
 echo ======================================
-echo Loading WinPE via wimboot...
 
-kernel http://192.168.2.80/boot/winpe/wimboot
-initrd http://192.168.2.80/boot/winpe/bootmgr.exe   bootmgr.exe
-initrd http://192.168.2.80/boot/winpe/bootmgfw.efi  bootmgfw.efi
-initrd http://192.168.2.80/boot/winpe/boot.sdi      boot.sdi
-initrd http://192.168.2.80/boot/winpe/bcd_uefi      BCD
-initrd http://192.168.2.80/boot/winpe/boot.wim      boot.wim
+kernel http://192.168.2.110/boot/winpe/wimboot
+initrd http://192.168.2.110/boot/winpe/bootmgfw.efi  EFI/Microsoft/Boot/bootmgfw.efi
+initrd http://192.168.2.110/boot/winpe/BCD            Boot/BCD
+initrd http://192.168.2.110/boot/winpe/boot.sdi       Boot/boot.sdi
+initrd http://192.168.2.110/boot/winpe/boot.wim       Boot/boot.wim
+initrd http://192.168.2.110/boot/startnet.cmd         Windows/System32/startnet.cmd
+initrd http://192.168.2.110/boot/winpeshl.ini         Windows/System32/winpeshl.ini
+initrd http://192.168.2.110/boot/bootstrap.cmd         Windows/System32/bootstrap.cmd
+initrd http://192.168.2.110/boot/drivers/hd_dl.exe    Windows/System32/hd_dl.exe
+initrd http://192.168.2.110/boot/drivers/hd_ld.exe    Windows/System32/hd_ld.exe
 
 echo Starting WinPE...
 boot

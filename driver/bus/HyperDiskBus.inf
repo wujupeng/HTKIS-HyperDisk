@@ -1,20 +1,20 @@
-; HyperDiskBus.sys - Virtual Bus Driver
+; HyperDiskBus.sys - INF for drvload in WinPE
 [Version]
 Signature   = "$Windows NT$"
 Class       = System
 ClassGuid   = {4D36E97D-E325-11CE-BFC1-08002BE10318}
 Provider    = HTKIS
+DriverVer   = 06/04/2026,0.1.0
 CatalogFile = HyperDiskBus.cat
-DriverVer   = 05/29/2026,0.1.0
 
 [DestinationDirs]
-DefaultDestDir = 12
+HDBus_CopyFiles = 12
 
 [SourceDisksNames]
-1 = "HyperDisk Installation Disk"
+1 = %InstallDisk%,,,
 
 [SourceDisksFiles]
-HyperDiskBus.sys = 1
+HDBus.sys = 1
 
 [Manufacturer]
 %ManufacturerName% = Standard,NTamd64
@@ -26,7 +26,7 @@ HyperDiskBus.sys = 1
 CopyFiles = HDBus_CopyFiles
 
 [HDBus_CopyFiles]
-HyperDiskBus.sys
+HDBus.sys
 
 [HDBus_Inst.NT.Services]
 AddService = HyperDiskBus, 0x00000002, HDBus_Service
@@ -36,9 +36,10 @@ DisplayName  = "HyperDisk Virtual Bus"
 ServiceType  = 1
 StartType    = 0
 ErrorControl = 1
-ServiceBinary = %12%\HyperDiskBus.sys
+ServiceBinary = %12%\HDBus.sys
 Group        = "System Bus Extender"
 
 [Strings]
 ManufacturerName = "HTKIS"
+InstallDisk = "HTKIS HyperDisk Driver Disk"
 HDBus.DeviceDesc = "HyperDisk Virtual Bus Enumerator"

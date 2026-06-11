@@ -1,7 +1,4 @@
 #include "bus_driver.h"
-#include "../common/hd_serial.h"
-
-HD_SERIAL_DEBUG g_SerialDebug;
 
 PHD_BUS_EXTENSION g_BusExtension = NULL;
 
@@ -51,9 +48,11 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     DriverObject->DriverExtension->AddDevice = NULL;
     DriverObject->MajorFunction[IRP_MJ_CREATE]         = HdBusDispatchCreate;
     DriverObject->MajorFunction[IRP_MJ_CLOSE]          = HdBusDispatchCreate;
-    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = HdBusDispatchIoctl;
+    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = HdBusDispatchDeviceControl;
     DriverObject->MajorFunction[IRP_MJ_PNP]            = HdBusDispatchPnp;
-    DriverObject->DriverUnload                         = HdBusUnload;
+    DriverObject->MajorFunction[IRP_MJ_POWER]          = HdBusDispatchPower;
+    DriverObject->MajorFunction[IRP_MJ_SYSTEM_CONTROL] = HdBusDispatchSystemControl;
+    DriverObject->DriverUnload                          = HdBusUnload;
 
     g_BusExtension = busExt;
 
@@ -65,13 +64,5 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
 VOID HdBusUnload(PDRIVER_OBJECT DriverObject)
 {
-    PHD_BUS_EXTENSION busExt = g_BusExtension;
-
-    if (busExt) {
-        IoDeleteSymbolicLink(&busExt->BusSymLinkName);
-        IoDeleteDevice(busExt->BusDeviceObject);
-        g_BusExtension = NULL;
-    }
-
     UNREFERENCED_PARAMETER(DriverObject);
 }

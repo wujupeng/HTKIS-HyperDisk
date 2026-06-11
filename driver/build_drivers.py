@@ -4,7 +4,7 @@ import sys
 
 WDK_ROOT = r"C:\Program Files (x86)\Windows Kits\10"
 WDK_VER = "10.0.26100.0"
-MSVC_ROOT = r"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231"
+MSVC_ROOT = r"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207"
 DRIVER_ROOT = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(DRIVER_ROOT, "build")
 
@@ -99,7 +99,7 @@ def main():
             "name": "HDBus",
             "dir": "bus",
             "sources": ["bus_driver.c", "bus_pnp.c", "bus_ioctl.c", "bus_child.c"],
-            "libs": ["ntoskrnl.lib", "hal.lib"],
+            "libs": ["ntoskrnl.lib", "hal.lib", "ntstrsafe.lib"],
         },
         {
             "name": "HDBlk",

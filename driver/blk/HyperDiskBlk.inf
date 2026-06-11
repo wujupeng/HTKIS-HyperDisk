@@ -1,32 +1,32 @@
-; HyperDiskBlk.sys - Virtual Block Device Driver
+; HyperDiskBlk.sys - WDM Disk Driver INF for WinPE
 [Version]
 Signature   = "$Windows NT$"
 Class       = DiskDrive
 ClassGuid   = {4D36E967-E325-11CE-BFC1-08002BE10318}
 Provider    = HTKIS
+DriverVer   = 06/09/2026,0.3.0
 CatalogFile = HyperDiskBlk.cat
-DriverVer   = 05/29/2026,0.1.0
 
 [DestinationDirs]
-DefaultDestDir = 12
+HDBlk_CopyFiles = 12
 
 [SourceDisksNames]
-1 = "HyperDisk Installation Disk"
+1 = %InstallDisk%,,,
 
 [SourceDisksFiles]
-HyperDiskBlk.sys = 1
+HDBlk.sys = 1
 
 [Manufacturer]
 %ManufacturerName% = Standard,NTamd64
 
 [Standard.NTamd64]
-%HDBlk.DeviceDesc% = HDBlk_Inst, SCSI\DiskHyperDisk_Virtual
+%HDBlk.DeviceDesc% = HDBlk_Inst, ROOT\HYPERDISKBLK
 
 [HDBlk_Inst.NT]
 CopyFiles = HDBlk_CopyFiles
 
 [HDBlk_CopyFiles]
-HyperDiskBlk.sys
+HDBlk.sys
 
 [HDBlk_Inst.NT.Services]
 AddService = HyperDiskBlk, 0x00000002, HDBlk_Service
@@ -35,11 +35,10 @@ AddService = HyperDiskBlk, 0x00000002, HDBlk_Service
 DisplayName  = "HyperDisk Virtual Block Device"
 ServiceType  = 1
 StartType    = 0
-ErrorControl = 3
-ServiceBinary = %12%\HyperDiskBlk.sys
-Group        = "SCSI miniport"
-Dependencies  = HyperNet
+ErrorControl = 1
+ServiceBinary = %12%\HDBlk.sys
 
 [Strings]
 ManufacturerName = "HTKIS"
+InstallDisk = "HTKIS HyperDisk Driver Disk"
 HDBlk.DeviceDesc = "HyperDisk Virtual Block Device"
